@@ -38,8 +38,9 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_SLUG_PUBLICO: ${{ vars.VITE_SLUG_PUBLICO }}
-          # Llave PÚBLICA de las notificaciones push (la privada vive solo en los secretos de Supabase)
-          VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY }}
+          # Llave PÚBLICA de las notificaciones push: no es secreta, por diseño viaja en la app a cada teléfono.
+          # La privada vive solo en los secretos de Supabase y nunca se sube aquí.
+          VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY || 'BAaLuf7y81jBRzG3UHnhZq4m7QRkRMUV3gMjzNYP-TDv054DTGvXwb8ffcup5onkkXR6zj1Mz4gidczwt429tBY' }}
 
       # GitHub Pages no conoce rutas como /cancionero: al recargar, devuelve 404.html, que es la propia app.
       - name: Respaldo para rutas de la app

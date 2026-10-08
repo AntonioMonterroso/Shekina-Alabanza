@@ -23,6 +23,9 @@ Desplegar (y volver a desplegar cada vez que cambie la función): `supabase func
 (Si ya habías desplegado `admin-crear-usuario`, vuelve a desplegarla para que acepte los roles maestro y tutor.)
 
 ## 4. Publicar la llave pública en la app
+**Ya está hecho:** la llave pública quedó escrita en `.github/workflows/desplegar.yml` (valor de respaldo de la variable `VITE_VAPID_PUBLIC_KEY`). Si algún día generas llaves nuevas, cambia ese valor o crea la variable en GitHub, que tiene prioridad.
+
+(Alternativa manual:)
 GitHub → repo → Settings → Secrets and variables → Actions → **Variables** → New:
 `VITE_VAPID_PUBLIC_KEY` = la llave pública. Luego vuelve a correr el despliegue (Actions → Desplegar → Run workflow).
 
