@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { finDeMes } from '../../lib/fechas'
+import { avisarPush } from '../../lib/push'
 import { supabase } from '../../lib/supabase'
 import type { Rol } from '../../lib/tipos'
 
@@ -85,6 +86,7 @@ export function useInicio(grupoId: string | undefined, miMiembroId: string | und
     if (!d.miTurno) return false
     const { error } = await supabase.from('turnos').update({ estado }).eq('id', d.miTurno.id)
     if (error) return false
+    if (estado === 'no_puede') avisarPush('no_puede', d.miTurno.id)
     setD((x) => (x.miTurno ? { ...x, miTurno: { ...x.miTurno, estado } } : x))
     return true
   }, [d.miTurno])

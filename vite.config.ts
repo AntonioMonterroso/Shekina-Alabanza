@@ -35,6 +35,8 @@ export default defineConfig({
         navigateFallback: `${base}index.html`,
         navigateFallbackDenylist: [new RegExp(`^${base}proyeccion`)],
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Recibe las notificaciones push (public/push-sw.js)
+        importScripts: ['push-sw.js'],
       },
     }),
   ],

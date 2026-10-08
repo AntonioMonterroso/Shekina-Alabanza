@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import Icon from '../../components/Icon'
 import { useToast } from '../../components/Toast'
 import { useAuth } from '../../hooks/authContext'
+import { activarPush, desactivarPush, estadoPush, type EstadoPush } from '../../lib/push'
 import { supabase } from '../../lib/supabase'
 import { ROL_LABEL, TEMAS, type Modo } from '../../lib/tipos'
 
@@ -18,6 +19,24 @@ export default function Perfil() {
   const [repite, setRepite] = useState('')
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [push, setPush] = useState<EstadoPush | null>(null)
+  const [cambiandoPush, setCambiandoPush] = useState(false)
+
+  useEffect(() => { void estadoPush().then(setPush) }, [])
+
+  async function alternarPush() {
+    if (!perfil) return
+    setCambiandoPush(true)
+    if (push === 'activo') {
+      await desactivarPush()
+      toast('Notificaciones desactivadas en este dispositivo')
+    } else {
+      const fallo = await activarPush(perfil.id)
+      toast(fallo ?? 'Notificaciones activadas')
+    }
+    setPush(await estadoPush())
+    setCambiandoPush(false)
+  }
 
   async function cambiarPassword(e: FormEvent) {
     e.preventDefault()
@@ -56,6 +75,23 @@ export default function Perfil() {
           ))}
         </div>
       </section>
+
+      {push && push !== 'no-configurado' && (
+        <section className="order p-4" aria-label="Notificaciones">
+          <h2 className="m-0 mb-1 text-[15px] font-extrabold">Notificaciones</h2>
+          <p className="m-0 mb-3 text-sm" style={{ color: 'var(--muted)' }}>
+            {push === 'instalar' ? 'En iPhone primero agrega la app a la pantalla de inicio (Compartir → Agregar a inicio) y ábrela desde ahí.'
+              : push === 'no-soportado' ? 'Este navegador no permite notificaciones.'
+              : push === 'bloqueado' ? 'Las bloqueaste en este dispositivo. Actívalas en los ajustes del teléfono para esta app.'
+              : 'Te avisamos de turnos que te asignan, ensayos nuevos y avisos del equipo.'}
+          </p>
+          {(push === 'activo' || push === 'inactivo') && (
+            <button type="button" className={push === 'activo' ? 'ghost-link' : 'cta'} disabled={cambiandoPush} onClick={alternarPush}>
+              {cambiandoPush ? <span className="spinner" aria-label="Un momento" /> : push === 'activo' ? 'Desactivar en este dispositivo' : 'Activar notificaciones'}
+            </button>
+          )}
+        </section>
+      )}
 
       <form onSubmit={cambiarPassword} className="order p-4" aria-label="Cambiar contraseña" noValidate>
         <h2 className="m-0 mb-3 text-[15px] font-extrabold">Cambiar contraseña</h2>

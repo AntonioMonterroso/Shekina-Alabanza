@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/authContext'
 import { useEquipo } from '../../hooks/useEquipo'
 import { fechaCorta, hora, iniciales } from '../../lib/fechas'
 import { permisos } from '../../lib/permisos'
+import { avisarPush } from '../../lib/push'
 import { supabase } from '../../lib/supabase'
 
 interface Aviso { id: string; autor: string | null; texto: string; created_at: string }
@@ -37,9 +38,10 @@ export default function Avisos() {
     const t = texto.trim()
     if (!t || !grupoId) return
     setEnviando(true)
-    const { error } = await supabase.from('avisos').insert({ grupo_id: grupoId, autor: membresia!.id, texto: t })
+    const { data, error } = await supabase.from('avisos').insert({ grupo_id: grupoId, autor: membresia!.id, texto: t }).select('id').single()
     setEnviando(false)
-    if (error) return toast('No se pudo publicar. Intenta de nuevo.')
+    if (error || !data) return toast('No se pudo publicar. Intenta de nuevo.')
+    avisarPush('aviso', data.id as string)
     setTexto('')
     toast('Aviso publicado')
     await cargar()

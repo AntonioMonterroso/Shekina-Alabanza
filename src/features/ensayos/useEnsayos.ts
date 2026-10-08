@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { avisarPush } from '../../lib/push'
 import { supabase } from '../../lib/supabase'
 
 export interface Ensayo { id: string; fecha: string; lugar: string | null; servicio_id: string | null }
@@ -135,6 +136,7 @@ export function useEnsayos(grupoId: string | undefined, miMiembroId: string | un
     if (!grupoId) return false
     const { data, error } = await supabase.from('ensayos').insert({ ...d, grupo_id: grupoId }).select('id').single()
     if (error || !data) return false
+    avisarPush('ensayo', data.id as string)
     await cargarEnsayos(data.id as string)
     return true
   }, [grupoId, cargarEnsayos])

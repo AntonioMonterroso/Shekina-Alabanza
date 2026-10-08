@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fechaGT, hoyGT } from '../../lib/fechas'
+import { avisarPush } from '../../lib/push'
 import { supabase } from '../../lib/supabase'
 
 export interface ServicioTurnos { id: string; fecha: string; tipo: string; llegada: string | null }
@@ -57,6 +58,7 @@ export function useTurnos(grupoId: string | undefined, miMiembroId: string | und
     parchear(turnoId, { estado })
     const { error } = await supabase.from('turnos').update({ estado }).eq('id', turnoId)
     if (error) parchear(turnoId, { estado: previo.estado })
+    else if (estado === 'no_puede') avisarPush('no_puede', turnoId) // avisa a los líderes
     return !error
   }, [e.turnos])
 
@@ -67,6 +69,7 @@ export function useTurnos(grupoId: string | undefined, miMiembroId: string | und
     parchear(turnoId, { miembro_id: miembroId, estado: 'pendiente' })
     const { error } = await supabase.from('turnos').update({ miembro_id: miembroId }).eq('id', turnoId)
     if (error) parchear(turnoId, { miembro_id: previo.miembro_id, estado: previo.estado })
+    else if (miembroId) avisarPush('turno', turnoId) // avisa a quien quedó asignado
     return !error
   }, [e.turnos])
 
