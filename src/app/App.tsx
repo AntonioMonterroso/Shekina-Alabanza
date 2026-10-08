@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import CambiarPassword from '../features/auth/CambiarPassword'
 import Login from '../features/auth/Login'
 import { Requiere } from '../components/AccesoDenegado'
+import Avisos from '../features/avisos/Avisos'
 import Cancionero from '../features/cancionero/Cancionero'
 import CancionDetalle from '../features/cancionero/CancionDetalle'
 import CancionForm from '../features/cancionero/CancionForm'
@@ -9,7 +10,6 @@ import Turnos from '../features/turnos/Turnos'
 import Servicios from '../features/servicios/Servicios'
 import Inicio from '../features/inicio/Inicio'
 import Perfil from '../features/perfil/Perfil'
-import Proximamente from '../features/proximamente/Proximamente'
 import Propuestas from '../features/propuestas/Propuestas'
 import Ensayos from '../features/ensayos/Ensayos'
 import Equipo from '../features/equipo/Equipo'
@@ -29,8 +29,6 @@ function Protegida({ conBarra = true }: { conBarra?: boolean }) {
   if (perfil?.debe_cambiar_password) return <CambiarPassword />
   return conBarra ? <Layout /> : <Outlet />
 }
-
-const pronto = (titulo: string, detalle: string) => <Proximamente titulo={titulo} detalle={detalle} />
 
 export default function App() {
   return (
@@ -82,7 +80,7 @@ export default function App() {
             <Route path="proyeccion" element={<Requiere permiso="verProyeccion" titulo="La proyección no es para tu rol" />}>
               <Route index element={<Proyeccion />} />
             </Route>
-            <Route path="avisos" element={pronto('Avisos', 'Mensajes para todo el equipo.')} />
+            <Route path="avisos" element={<Avisos />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

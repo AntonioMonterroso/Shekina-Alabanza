@@ -34,6 +34,15 @@ export default function Inicio() {
   const d = useInicio(membresia?.grupo_id, membresia?.id, p.esLider, p.verServicios)
   const [grupos, setGrupos] = useState(false)
   const [propuestasNuevas, setPropuestasNuevas] = useState(0)
+  const [aviso, setAviso] = useState<{ texto: string; created_at: string } | null>(null)
+
+  // Último aviso de los últimos 14 días, para todo el equipo
+  useEffect(() => {
+    if (!membresia) return
+    const desde = new Date(Date.now() - 14 * 86_400_000).toISOString()
+    void supabase.from('avisos').select('texto, created_at').eq('grupo_id', membresia.grupo_id).gte('created_at', desde).order('created_at', { ascending: false }).limit(1).maybeSingle()
+      .then(({ data }) => setAviso((data as { texto: string; created_at: string } | null) ?? null))
+  }, [membresia])
 
   useEffect(() => {
     if (!p.esLider || !membresia) return
@@ -132,6 +141,14 @@ export default function Inicio() {
           <Link to="/turnos" className="rise alerta" style={{ animationDelay: '130ms' }}>
             <Icon name="alerta" size={18} strokeWidth={2.2} />
             <span className="grow">{d.sinCubrir === 1 ? '1 puesto sin cubrir este mes' : `${d.sinCubrir} puestos sin cubrir este mes`}</span>
+            <Icon name="derecha" size={16} strokeWidth={2.4} />
+          </Link>
+        )}
+
+        {aviso && (
+          <Link to="/avisos" className="rise alerta" style={{ animationDelay: '120ms', background: 'var(--c-rosa-bg)', borderColor: 'transparent', color: 'var(--c-rosa-fg)' }}>
+            <Icon name="aviso" size={18} strokeWidth={2.2} />
+            <span className="grow truncate">{aviso.texto}</span>
             <Icon name="derecha" size={16} strokeWidth={2.4} />
           </Link>
         )}
