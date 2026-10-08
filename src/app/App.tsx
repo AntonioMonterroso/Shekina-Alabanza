@@ -11,6 +11,7 @@ import Inicio from '../features/inicio/Inicio'
 import Perfil from '../features/perfil/Perfil'
 import Proximamente from '../features/proximamente/Proximamente'
 import Propuestas from '../features/propuestas/Propuestas'
+import Ensayos from '../features/ensayos/Ensayos'
 import Escenario from '../features/escenario/Escenario'
 import Publico from '../features/publico/Publico'
 import { AuthProvider } from '../hooks/AuthProvider'
@@ -66,7 +67,9 @@ export default function App() {
             <Route path="propuestas" element={<Requiere permiso="esLider" titulo="Solo los líderes ven las propuestas" />}>
               <Route index element={<Propuestas />} />
             </Route>
-            <Route path="ensayos" element={pronto('Ensayos', 'Asistencia, canciones a ensayar y guías. Es el paso 10 del plan.')} />
+            <Route path="ensayos" element={<Requiere permiso="verEnsayos" titulo="Ensayos no es para tu rol" />}>
+              <Route index element={<Ensayos />} />
+            </Route>
             <Route path="equipo" element={pronto('Equipo', 'Agregar integrantes, roles y cambio de contraseñas. Es el paso 11 del plan.')} />
             <Route path="proyeccion" element={pronto('Proyección', 'Control de la pantalla del templo. Llega después de Cancionero y Servicios.')} />
             <Route path="avisos" element={pronto('Avisos', 'Mensajes para todo el equipo.')} />
