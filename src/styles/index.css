@@ -530,3 +530,7 @@ code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; background: var(-
 .esc-nav b { font-size: 15px; font-weight: 800; }
 .esc-nav.next { background: var(--escena-chord); color: var(--escena-bg); justify-content: flex-end; text-align: right; }
 .esc-nav:disabled { opacity: 0.35; cursor: default; }
+
+/* Pantalla del templo: la diapositiva entra suave (sin animación si el sistema lo pide) */
+@keyframes aparecer { from { opacity: 0; } }
+.pantalla-letra { animation: aparecer 0.35s ease both; }

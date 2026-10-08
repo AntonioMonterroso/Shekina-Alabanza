@@ -14,6 +14,8 @@ import Propuestas from '../features/propuestas/Propuestas'
 import Ensayos from '../features/ensayos/Ensayos'
 import Equipo from '../features/equipo/Equipo'
 import Escenario from '../features/escenario/Escenario'
+import Pantalla from '../features/proyeccion/Pantalla'
+import Proyeccion from '../features/proyeccion/Proyeccion'
 import Publico from '../features/publico/Publico'
 import { AuthProvider } from '../hooks/AuthProvider'
 import { useAuth } from '../hooks/authContext'
@@ -44,6 +46,9 @@ export default function App() {
           <Route path="/p/:slug" element={<Publico />} />
           {/* Modo escenario: pantalla completa, sin barra inferior */}
           <Route element={<Protegida conBarra={false} />}>
+            <Route path="proyeccion/pantalla" element={<Requiere permiso="verProyeccion" titulo="La proyección no es para tu rol" />}>
+              <Route index element={<Pantalla />} />
+            </Route>
             <Route path="escenario" element={<Requiere permiso="verEscenario" titulo="El modo escenario no es para tu rol" />}>
               <Route index element={<Escenario />} />
             </Route>
@@ -74,7 +79,9 @@ export default function App() {
             <Route path="equipo" element={<Requiere permiso="verEquipo" titulo="Equipo no es para tu rol" />}>
               <Route index element={<Equipo />} />
             </Route>
-            <Route path="proyeccion" element={pronto('Proyección', 'Control de la pantalla del templo. Llega después de Cancionero y Servicios.')} />
+            <Route path="proyeccion" element={<Requiere permiso="verProyeccion" titulo="La proyección no es para tu rol" />}>
+              <Route index element={<Proyeccion />} />
+            </Route>
             <Route path="avisos" element={pronto('Avisos', 'Mensajes para todo el equipo.')} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
