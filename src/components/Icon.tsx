@@ -24,6 +24,9 @@ const P: Record<string, string[]> = {
   borrar: ['M4 7h16M10 11v6M14 11v6', 'M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12', 'M9 7V4h6v3'],
   menos: ['M5 12h14'],
   audio: ['M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2'],
+  arriba: ['M6 15l6-6 6 6'],
+  equis: ['M6 6l12 12M18 6L6 18'],
+  reloj: ['M12 3a9 9 0 1 0 9 9', 'M12 7v5l3 2'],
 }
 
 export type IconName = keyof typeof P

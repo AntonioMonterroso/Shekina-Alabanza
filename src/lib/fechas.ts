@@ -22,3 +22,20 @@ export function finDeMes(): string {
 
 export const iniciales = (nombre: string) =>
   nombre.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join('')
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+/** "Domingo 11 de octubre" */
+export const fechaLarga = (d: Date | string) => cap(f(d, { weekday: 'long', day: 'numeric', month: 'long' }).replace(',', ''))
+export const diaSemanaCap = (d: Date | string) => cap(diaSemana(d))
+
+// Guatemala está en UTC-6 todo el año (sin horario de verano): un datetime-local se interpreta con -06:00.
+/** "2026-10-11T10:00" (lo que escribe el usuario, hora de Guatemala) → ISO UTC */
+export const desdeInputLocal = (v: string) => new Date(`${v}:00-06:00`).toISOString()
+/** ISO UTC → "2026-10-11T10:00" en hora de Guatemala, para un <input type="datetime-local"> */
+export function aInputLocal(iso: string): string {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+      .formatToParts(new Date(iso)).map((x) => [x.type, x.value]),
+  )
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`
+}

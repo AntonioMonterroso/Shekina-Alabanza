@@ -5,6 +5,7 @@ import { Requiere } from '../components/AccesoDenegado'
 import Cancionero from '../features/cancionero/Cancionero'
 import CancionDetalle from '../features/cancionero/CancionDetalle'
 import CancionForm from '../features/cancionero/CancionForm'
+import Servicios from '../features/servicios/Servicios'
 import Inicio from '../features/inicio/Inicio'
 import Perfil from '../features/perfil/Perfil'
 import Proximamente from '../features/proximamente/Proximamente'
@@ -38,7 +39,9 @@ export default function App() {
           <Route element={<Protegida />}>
             <Route index element={<Inicio />} />
             <Route path="perfil" element={<Perfil />} />
-            <Route path="servicios" element={pronto('Servicios', 'Aquí se arma el orden del culto. Es el paso 6 del plan.')} />
+            <Route path="servicios" element={<Requiere permiso="verServicios" titulo="Servicios no es para tu rol" />}>
+              <Route index element={<Servicios />} />
+            </Route>
             <Route path="cancionero" element={<Requiere permiso="verCancionero" titulo="El cancionero no es para tu rol" />}>
               <Route index element={<Cancionero />} />
               <Route path=":id" element={<CancionDetalle />} />
