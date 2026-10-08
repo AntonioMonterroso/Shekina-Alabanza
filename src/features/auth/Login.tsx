@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/AuthProvider'
-import { correoDeUsuario, normalizarUsuario, usuarioValido } from '../../lib/usuario'
+import { correoDeAcceso, esCorreo, normalizarUsuario, usuarioValido } from '../../lib/usuario'
 import { supabase, supabaseConfigurado } from '../../lib/supabase'
 
 type Fase = 'idle' | 'loading' | 'done'
@@ -34,13 +34,13 @@ export default function Login() {
     e.preventDefault()
     if (fase !== 'idle') return
     const u = normalizarUsuario(usuario)
-    if (!usuarioValido(u)) return marcar('usuario', 'Revisa tu usuario.')
+    if (!esCorreo(u) && !usuarioValido(u)) return marcar('usuario', 'Revisa tu usuario.')
     if (!pass) return marcar('pass', 'Escribe tu contraseña.')
     if (!supabaseConfigurado) return setError('Falta configurar Supabase (.env.local).')
 
     setFase('loading')
     setError('')
-    const { error: err } = await supabase.auth.signInWithPassword({ email: correoDeUsuario(u), password: pass })
+    const { error: err } = await supabase.auth.signInWithPassword({ email: correoDeAcceso(u), password: pass })
     if (err) {
       setFase('idle')
       marcar('pass', err.status === 400 || err.status === 401 ? 'Usuario o contraseña incorrectos.' : 'No pudimos entrar. Intenta de nuevo.')
@@ -86,7 +86,7 @@ export default function Login() {
                 id="usuario" type="text" inputMode="text" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false}
                 placeholder=" " value={usuario} onChange={(e) => { setUsuario(e.target.value); setError('') }}
               />
-              <label htmlFor="usuario">Usuario</label>
+              <label htmlFor="usuario">Usuario o correo</label>
             </div>
           </div>
 
