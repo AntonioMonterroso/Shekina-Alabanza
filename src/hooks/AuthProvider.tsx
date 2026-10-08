@@ -7,6 +7,13 @@ import { Ctx, type AuthCtx } from './authContext'
 const LS_GRUPO = 'alabanza.grupo'
 const LS_TEMA = 'alabanza.tema'
 const LS_MODO = 'alabanza.modo'
+const LS_DATOS = 'alabanza.datos'
+
+// Copia del perfil y los grupos para poder abrir la app (y el modo escenario) sin conexión.
+interface CopiaDatos { uid: string; perfil: Perfil; membresias: Membresia[] }
+const leerCopia = (): CopiaDatos | null => {
+  try { return JSON.parse(localStorage.getItem(LS_DATOS) ?? 'null') as CopiaDatos | null } catch { return null }
+}
 
 const guardado = (k: string) => {
   try { return localStorage.getItem(k) } catch { return null }
@@ -52,7 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+      // Sin red el token vencido no se puede renovar: se sigue con la copia local en vez de mandar al login.
+      // Con red, el servidor es quien decide si la sesión sigue vigente.
+      const copia = !data.session && !navigator.onLine ? leerCopia() : null
+      setSession(data.session ?? (copia ? ({ user: { id: copia.uid } } as Session) : null))
       setCargandoSesion(false)
     })
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
@@ -73,9 +83,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from('miembros').select('id, grupo_id, rol, descripcion, grupo:grupos(id, nombre, slug, activo)')
         .eq('user_id', uid).eq('activo', true),
     ])
-    const perf = (p.data as Perfil | null) ?? null
+    const copia = leerCopia()
+    // Si falló la red (error y no "sin filas") se usa la copia del dispositivo
+    const usarCopia = (p.error || m.error) && copia?.uid === uid
+    const perf = usarCopia ? copia.perfil : (p.data as Perfil | null) ?? null
+    const miembros = usarCopia ? copia.membresias : ((m.data ?? []) as unknown as Membresia[]).filter((x) => x.grupo)
     setPerfil(perf)
-    setMembresias(((m.data ?? []) as unknown as Membresia[]).filter((x) => x.grupo))
+    setMembresias(miembros)
+    if (!usarCopia && perf && !p.error && !m.error) {
+      try { localStorage.setItem(LS_DATOS, JSON.stringify({ uid, perfil: perf, membresias: miembros })) } catch { /* sin espacio */ }
+    }
     if (perf) setApariencia({ tema: perf.tema, modo: perf.modo ?? 'auto' })
     setCargandoDatos(false)
   }, [uid])
@@ -107,7 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPerfil((p) => (p ? { ...p, modo: m } : p))
     },
     recargar: cargarDatos,
-    salir: async () => { await supabase.auth.signOut() },
+    salir: async () => {
+      try { localStorage.removeItem(LS_DATOS) } catch { /* nada que borrar */ }
+      await supabase.auth.signOut()
+    },
   }
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

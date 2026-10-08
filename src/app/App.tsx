@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import CambiarPassword from '../features/auth/CambiarPassword'
 import Login from '../features/auth/Login'
 import { Requiere } from '../components/AccesoDenegado'
@@ -11,18 +11,19 @@ import Inicio from '../features/inicio/Inicio'
 import Perfil from '../features/perfil/Perfil'
 import Proximamente from '../features/proximamente/Proximamente'
 import Propuestas from '../features/propuestas/Propuestas'
+import Escenario from '../features/escenario/Escenario'
 import Publico from '../features/publico/Publico'
 import { AuthProvider } from '../hooks/AuthProvider'
 import { useAuth } from '../hooks/authContext'
 import { supabaseConfigurado } from '../lib/supabase'
 import Layout from './Layout'
 
-function Protegida() {
+function Protegida({ conBarra = true }: { conBarra?: boolean }) {
   const { cargando, session, perfil } = useAuth()
   if (cargando) return <div className="pantalla grid place-items-center"><span className="spinner" style={{ borderColor: 'var(--line)', borderTopColor: 'var(--primary)' }} aria-label="Cargando" /></div>
   if (!session) return <Navigate to="/login" replace />
   if (perfil?.debe_cambiar_password) return <CambiarPassword />
-  return <Layout />
+  return conBarra ? <Layout /> : <Outlet />
 }
 
 const pronto = (titulo: string, detalle: string) => <Proximamente titulo={titulo} detalle={detalle} />
@@ -39,6 +40,12 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/p/:slug" element={<Publico />} />
+          {/* Modo escenario: pantalla completa, sin barra inferior */}
+          <Route element={<Protegida conBarra={false} />}>
+            <Route path="escenario" element={<Requiere permiso="verEscenario" titulo="El modo escenario no es para tu rol" />}>
+              <Route index element={<Escenario />} />
+            </Route>
+          </Route>
           <Route element={<Protegida />}>
             <Route index element={<Inicio />} />
             <Route path="perfil" element={<Perfil />} />
@@ -61,7 +68,6 @@ export default function App() {
             </Route>
             <Route path="ensayos" element={pronto('Ensayos', 'Asistencia, canciones a ensayar y guías. Es el paso 10 del plan.')} />
             <Route path="equipo" element={pronto('Equipo', 'Agregar integrantes, roles y cambio de contraseñas. Es el paso 11 del plan.')} />
-            <Route path="escenario" element={pronto('Modo escenario', 'Letra y acordes en grande, con transposición. Es el paso 9 del plan.')} />
             <Route path="proyeccion" element={pronto('Proyección', 'Control de la pantalla del templo. Llega después de Cancionero y Servicios.')} />
             <Route path="avisos" element={pronto('Avisos', 'Mensajes para todo el equipo.')} />
           </Route>

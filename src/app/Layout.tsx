@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import Hoja from '../components/Hoja'
 import Icon, { type IconName } from '../components/Icon'
 import { ToastProvider } from '../components/Toast'
 import { useAuth } from '../hooks/authContext'
+import { cargarEscenario } from '../features/escenario/datos'
 import { permisos } from '../lib/permisos'
 
 const Tab = ({ to, icono, texto, end }: { to: string; icono: IconName; texto: string; end?: boolean }) => (
@@ -13,8 +14,15 @@ const Tab = ({ to, icono, texto, end }: { to: string; icono: IconName; texto: st
 )
 
 export default function Layout() {
-  const { rol } = useAuth()
+  const { rol, membresia } = useAuth()
   const p = permisos(rol)
+  const grupoId = membresia?.grupo_id
+  const baja = p.verEscenario
+
+  // Deja en el dispositivo el próximo servicio y sus letras para el modo escenario sin conexión
+  useEffect(() => {
+    if (baja && grupoId) cargarEscenario(grupoId).catch(() => {})
+  }, [baja, grupoId])
   const navigate = useNavigate()
   const [crear, setCrear] = useState(false)
   const ir = (ruta: string) => { setCrear(false); navigate(ruta) }
