@@ -34,7 +34,7 @@ export default function App() {
           Falta .env.local con VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY
         </div>
       )}
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/p/:slug" element={<Publico />} />

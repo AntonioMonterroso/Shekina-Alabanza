@@ -160,7 +160,7 @@ export default function Inicio() {
           {p.verEscenario && <Link to="/escenario" className="more"><Icon name="escenario" size={18} strokeWidth={2} />Modo escenario</Link>}
           {p.verProyeccion && <Link to="/proyeccion" className="more"><Icon name="proyeccion" size={18} strokeWidth={2} />Proyección</Link>}
           <Link to="/perfil" className="more"><Icon name="perfil" size={18} strokeWidth={2} />Mi perfil</Link>
-          <a href={`/p/${membresia.grupo.slug}`} className="more"><Icon name="mundo" size={18} strokeWidth={2} />Página pública</a>
+          <Link to={`/p/${membresia.grupo.slug}`} className="more"><Icon name="mundo" size={18} strokeWidth={2} />Página pública</Link>
         </nav>
       </div>
 

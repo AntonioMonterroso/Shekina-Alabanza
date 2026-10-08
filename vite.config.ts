@@ -3,7 +3,11 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// En desarrollo la app vive en "/". En GitHub Pages vive en "/Shekina-Alabanza/" (lo fija el workflow con VITE_BASE).
+const base = process.env.VITE_BASE ?? '/'
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     tailwindcss(),
@@ -19,7 +23,8 @@ export default defineConfig({
         background_color: '#F2F7EE',
         display: 'standalone',
         orientation: 'any',
-        start_url: '/',
+        start_url: base,
+        scope: base,
         icons: [
           { src: 'pwa-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },
@@ -27,8 +32,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/proyeccion/],
+        navigateFallback: `${base}index.html`,
+        navigateFallbackDenylist: [new RegExp(`^${base}proyeccion`)],
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
       },
     }),
