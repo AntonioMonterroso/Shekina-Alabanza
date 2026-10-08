@@ -2,6 +2,9 @@
 // Quién puede disparar cada tipo se valida aquí, no en el cliente:
 //   aviso, ensayo, turno → líder o propietario del grupo
 //   no_puede             → el propio integrante del turno (avisa a los líderes)
+//   practica             → quien gestiona la clase (maestro o coordinación); avisa a los alumnos y sus tutores
+//   comentario, nivel    → su autor; avisa al alumno y sus tutores
+//   recomendado          → quien le enseña o coordina; avisa a los líderes
 import webpush from 'npm:web-push@3.6.7'
 import { adminClient, json, preflight, quienLlama } from '../_shared/admin.ts'
 import { armarMensaje, type DatosPush, type TipoPush } from '../_shared/push.ts'
@@ -24,7 +27,7 @@ Deno.serve(async (req) => {
   if (!yo) return json({ error: 'No autorizado' }, 401)
 
   const { tipo, id } = await req.json().catch(() => ({})) as { tipo?: TipoPush; id?: string }
-  if (!id || typeof id !== 'string' || !['aviso', 'ensayo', 'turno', 'no_puede'].includes(tipo ?? '')) return json({ error: 'Petición no válida' }, 400)
+  if (!id || typeof id !== 'string' || !['aviso', 'ensayo', 'turno', 'no_puede', 'practica', 'comentario', 'nivel', 'recomendado'].includes(tipo ?? '')) return json({ error: 'Petición no válida' }, 400)
 
   async function rolEn(grupoId: string): Promise<string | null> {
     const { data } = await admin.from('miembros').select('rol').eq('grupo_id', grupoId).eq('user_id', yo!.id).eq('activo', true).maybeSingle()
@@ -33,6 +36,34 @@ Deno.serve(async (req) => {
   async function usuariosDe(grupoId: string, roles: string[]): Promise<string[]> {
     const { data } = await admin.from('miembros').select('user_id').eq('grupo_id', grupoId).eq('activo', true).in('rol', roles)
     return (data ?? []).map((m) => m.user_id as string)
+  }
+
+  /** user_id de unos miembros */
+  async function usuariosDeMiembros(ids: string[]): Promise<string[]> {
+    if (ids.length === 0) return []
+    const { data } = await admin.from('miembros').select('user_id').in('id', ids).eq('activo', true)
+    return (data ?? []).map((m) => m.user_id as string)
+  }
+  /** Los alumnos y sus tutores (a quien le toca enterarse) */
+  async function conTutores(alumnos: string[]): Promise<string[]> {
+    if (alumnos.length === 0) return []
+    const { data: t } = await admin.from('escuela_tutores').select('tutor_id').in('alumno_id', alumnos)
+    return usuariosDeMiembros([...alumnos, ...(t ?? []).map((x) => x.tutor_id as string)])
+  }
+  /** ¿yo gestiono esta clase? (la coordina el grupo, o soy su maestro) */
+  async function gestionaClase(claseId: string): Promise<{ grupo: string; nombre: string } | null> {
+    const { data: c } = await admin.from('escuela_clases').select('grupo_id, maestro_id, nombre').eq('id', claseId).maybeSingle()
+    if (!c) return null
+    const { data: mio } = await admin.from('miembros').select('id, rol, coordina_escuela').eq('grupo_id', c.grupo_id).eq('user_id', yo!.id).eq('activo', true).maybeSingle()
+    if (!mio) return null
+    const coordina = LIDERES.includes(mio.rol as string) || Boolean(mio.coordina_escuela)
+    return coordina || c.maestro_id === mio.id ? { grupo: c.grupo_id as string, nombre: c.nombre as string } : null
+  }
+  async function nombreDe(miembroId: string): Promise<string | undefined> {
+    const { data: m } = await admin.from('miembros').select('user_id').eq('id', miembroId).maybeSingle()
+    if (!m) return undefined
+    const { data: p } = await admin.from('perfiles').select('nombre').eq('id', m.user_id).maybeSingle()
+    return (p?.nombre as string | undefined)?.split(' ')[0]
   }
 
   let destinos: string[] = []
@@ -50,6 +81,45 @@ Deno.serve(async (req) => {
     if (!LIDERES.includes((await rolEn(e.grupo_id as string)) ?? '')) return json({ error: 'Sin permiso' }, 403)
     destinos = await usuariosDe(e.grupo_id as string, EQUIPO)
     datos = { fecha: e.fecha as string, lugar: e.lugar as string | null }
+  } else if (tipo === 'practica') {
+    const { data: p } = await admin.from('escuela_practicas').select('clase_id, alumno_id, titulo').eq('id', id).maybeSingle()
+    if (!p) return json({ error: 'No encontrado' }, 404)
+    const clase = await gestionaClase(p.clase_id as string)
+    if (!clase) return json({ error: 'Sin permiso' }, 403)
+    let alumnos: string[]
+    if (p.alumno_id) alumnos = [p.alumno_id as string]
+    else {
+      const { data: ins } = await admin.from('escuela_inscripciones').select('alumno_id').eq('clase_id', p.clase_id).eq('activo', true)
+      alumnos = (ins ?? []).map((i) => i.alumno_id as string)
+    }
+    destinos = await conTutores(alumnos)
+    datos = { titulo: p.titulo as string, clase: clase.nombre }
+  } else if (tipo === 'comentario') {
+    const { data: c } = await admin.from('escuela_comentarios').select('clase_id, alumno_id, autor_id, texto').eq('id', id).maybeSingle()
+    if (!c || !c.autor_id) return json({ error: 'No encontrado' }, 404)
+    const [autor] = await usuariosDeMiembros([c.autor_id as string])
+    if (autor !== yo.id) return json({ error: 'Sin permiso' }, 403)
+    destinos = await conTutores([c.alumno_id as string])
+    datos = { texto: c.texto as string, nombre: await nombreDe(c.autor_id as string) }
+  } else if (tipo === 'nivel') {
+    const { data: h } = await admin.from('escuela_hitos').select('alumno_id, nivel_id, por').eq('id', id).maybeSingle()
+    if (!h || !h.por) return json({ error: 'No encontrado' }, 404)
+    const [autor] = await usuariosDeMiembros([h.por as string])
+    if (autor !== yo.id) return json({ error: 'Sin permiso' }, 403)
+    const { data: n } = await admin.from('escuela_niveles').select('nombre, curso:escuela_cursos(nombre)').eq('id', h.nivel_id).maybeSingle()
+    const curso = (Array.isArray(n?.curso) ? n?.curso[0] : n?.curso) as { nombre: string } | null | undefined
+    destinos = await conTutores([h.alumno_id as string])
+    datos = { alumno: await nombreDe(h.alumno_id as string), nivel: n?.nombre as string | undefined, curso: curso?.nombre }
+  } else if (tipo === 'recomendado') {
+    // id = el miembro recomendado; quien avisa debe enseñarle o coordinar su grupo
+    const { data: al } = await admin.from('miembros').select('grupo_id').eq('id', id).maybeSingle()
+    if (!al) return json({ error: 'No encontrado' }, 404)
+    const { data: ins } = await admin.from('escuela_inscripciones').select('clase_id').eq('alumno_id', id).eq('activo', true)
+    let permitido = LIDERES.includes((await rolEn(al.grupo_id as string)) ?? '')
+    for (const i of ins ?? []) if (!permitido && await gestionaClase(i.clase_id as string)) permitido = true
+    if (!permitido) return json({ error: 'Sin permiso' }, 403)
+    destinos = await usuariosDe(al.grupo_id as string, LIDERES)
+    datos = { alumno: await nombreDe(id) }
   } else {
     const { data: t } = await admin.from('turnos')
       .select('estado, miembro_id, puesto:puestos(nombre), servicio:servicios(grupo_id, fecha, tipo)').eq('id', id).maybeSingle()

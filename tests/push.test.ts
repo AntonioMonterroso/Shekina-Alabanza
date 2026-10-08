@@ -22,3 +22,13 @@ test('ensayo, turno y "no puede" dicen cuándo y dónde, en hora de Guatemala', 
   assert.equal(n.body, 'Ana no puede Voz 2 el jue 8 oct')
   assert.equal(n.url, 'https://x.github.io/App/turnos')
 })
+
+test('Escuela: práctica, comentario, nivel y recomendación', () => {
+  assert.deepEqual(armarMensaje('practica', { titulo: 'Escala de Do', clase: 'Piano — martes' }, URL), { title: 'Práctica nueva', body: 'Escala de Do · Piano — martes', url: 'https://x.github.io/App/escuela' })
+  const c = armarMensaje('comentario', { nombre: 'Pedro', texto: '  Muy bien\nla escala  ' }, URL)
+  assert.equal(c.title, 'Pedro te escribió')
+  assert.equal(c.body, 'Muy bien la escala')
+  assert.equal(armarMensaje('comentario', { texto: 'Hola' }, URL).title, 'Mensaje de tu maestro')
+  assert.equal(armarMensaje('nivel', { alumno: 'Ana', nivel: 'Intermedio', curso: 'Piano' }, URL).body, 'Ana completó «Intermedio» en Piano')
+  assert.equal(armarMensaje('recomendado', { alumno: 'Ana' }, URL).body, 'Ana fue recomendado para tocar con el grupo')
+})

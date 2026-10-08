@@ -1,3 +1,4 @@
+import { avisarPush } from '../../lib/push'
 import { supabase } from '../../lib/supabase'
 
 export type ColorCurso = 'verde' | 'lila' | 'rosa' | 'ambar' | 'azul'
@@ -101,7 +102,12 @@ export async function cargarPracticas(claseIds: string[], semanas: string[]): Pr
 }
 
 export async function guardarPractica(d: Omit<Practica, 'id'>, id?: string): Promise<boolean> {
-  const { error } = id ? await supabase.from('escuela_practicas').update(d).eq('id', id) : await supabase.from('escuela_practicas').insert(d)
+  if (id) {
+    const { error } = await supabase.from('escuela_practicas').update(d).eq('id', id)
+    return !error
+  }
+  const { data, error } = await supabase.from('escuela_practicas').insert(d).select('id').single()
+  if (!error && data) avisarPush('practica', data.id as string) // solo las nuevas avisan, no las ediciones
   return !error
 }
 
@@ -250,7 +256,8 @@ export async function cargarComentarios(alumnoId: string, claseId?: string): Pro
 }
 
 export async function crearComentario(claseId: string, alumnoId: string, autorId: string, texto: string): Promise<boolean> {
-  const { error } = await supabase.from('escuela_comentarios').insert({ clase_id: claseId, alumno_id: alumnoId, autor_id: autorId, texto })
+  const { data, error } = await supabase.from('escuela_comentarios').insert({ clase_id: claseId, alumno_id: alumnoId, autor_id: autorId, texto }).select('id').single()
+  if (!error && data) avisarPush('comentario', data.id as string)
   return !error
 }
 
@@ -287,7 +294,8 @@ export async function cargarHitos(alumnoId: string): Promise<Hito[]> {
 }
 
 export async function marcarHito(alumnoId: string, nivelId: string, por: string, nota: string | null): Promise<boolean> {
-  const { error } = await supabase.from('escuela_hitos').upsert({ alumno_id: alumnoId, nivel_id: nivelId, por, nota }, { onConflict: 'alumno_id,nivel_id' })
+  const { data, error } = await supabase.from('escuela_hitos').upsert({ alumno_id: alumnoId, nivel_id: nivelId, por, nota }, { onConflict: 'alumno_id,nivel_id' }).select('id').single()
+  if (!error && data) avisarPush('nivel', data.id as string)
   return !error
 }
 
@@ -298,6 +306,7 @@ export async function quitarHito(id: string): Promise<boolean> {
 
 export async function recomendarAlumno(alumnoId: string, nota: string | null): Promise<boolean> {
   const { error } = await supabase.rpc('recomendar_alumno', { p_alumno: alumnoId, p_nota: nota ?? '' })
+  if (!error) avisarPush('recomendado', alumnoId) // avisa a los líderes
   return !error
 }
 

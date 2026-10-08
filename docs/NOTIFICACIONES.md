@@ -19,7 +19,7 @@ En Supabase → Edge Functions → Secrets (o con `supabase secrets set`):
 - `VAPID_SUBJECT` = `mailto:tu-correo@ejemplo.com`
 - `APP_URL` = `https://antoniomonterroso.github.io/Shekina-Alabanza/`
 
-Desplegar: `supabase functions deploy enviar-push --project-ref acdskhdbnnvijyekzuft`
+Desplegar (y volver a desplegar cada vez que cambie la función): `supabase functions deploy enviar-push --project-ref acdskhdbnnvijyekzuft`
 (Si ya habías desplegado `admin-crear-usuario`, vuelve a desplegarla para que acepte los roles maestro y tutor.)
 
 ## 4. Publicar la llave pública en la app
@@ -37,6 +37,10 @@ Perfil → Notificaciones → **Activar**. En iPhone la app debe estar agregada 
 | Un líder convoca un ensayo | El equipo de alabanza |
 | Un líder asigna o reasigna un turno | La persona asignada |
 | Alguien marca "No puedo" en un turno | Los líderes ("Falta reemplazo") |
+| Un maestro deja una práctica nueva | Los alumnos de la clase (o el alumno elegido) y sus tutores |
+| Un maestro le escribe un comentario a un alumno | Ese alumno y sus tutores |
+| Un maestro marca un nivel completado | El alumno y sus tutores |
+| Un maestro recomienda a un alumno para el equipo | Los líderes |
 
 Quien dispara la acción no recibe su propia notificación. La función valida en el servidor quién puede
 disparar cada tipo; el teléfono nunca decide a quién se envía.

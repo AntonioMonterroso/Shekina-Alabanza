@@ -55,7 +55,7 @@ export async function desactivarPush(): Promise<void> {
 }
 
 /** Pide a la Edge Function que avise a quien corresponda. Nunca interrumpe lo que el usuario estaba haciendo. */
-export function avisarPush(tipo: 'aviso' | 'ensayo' | 'turno' | 'no_puede', id: string): void {
+export function avisarPush(tipo: 'aviso' | 'ensayo' | 'turno' | 'no_puede' | 'practica' | 'comentario' | 'nivel' | 'recomendado', id: string): void {
   if (!CLAVE) return
   void supabase.functions.invoke('enviar-push', { body: { tipo, id } }).catch(() => {})
 }
