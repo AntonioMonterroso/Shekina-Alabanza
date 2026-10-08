@@ -10,6 +10,7 @@ import Servicios from '../features/servicios/Servicios'
 import Inicio from '../features/inicio/Inicio'
 import Perfil from '../features/perfil/Perfil'
 import Proximamente from '../features/proximamente/Proximamente'
+import Propuestas from '../features/propuestas/Propuestas'
 import Publico from '../features/publico/Publico'
 import { AuthProvider } from '../hooks/AuthProvider'
 import { useAuth } from '../hooks/authContext'
@@ -54,6 +55,9 @@ export default function App() {
             </Route>
             <Route path="turnos" element={<Requiere permiso="verTurnos" titulo="Turnos no es para tu rol" />}>
               <Route index element={<Turnos />} />
+            </Route>
+            <Route path="propuestas" element={<Requiere permiso="esLider" titulo="Solo los líderes ven las propuestas" />}>
+              <Route index element={<Propuestas />} />
             </Route>
             <Route path="ensayos" element={pronto('Ensayos', 'Asistencia, canciones a ensayar y guías. Es el paso 10 del plan.')} />
             <Route path="equipo" element={pronto('Equipo', 'Agregar integrantes, roles y cambio de contraseñas. Es el paso 11 del plan.')} />

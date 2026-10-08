@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Hoja from '../../components/Hoja'
 import Icon, { type IconName } from '../../components/Icon'
@@ -6,6 +6,7 @@ import { useToast } from '../../components/Toast'
 import { useAuth } from '../../hooks/authContext'
 import { diaNum, diaSemana, iniciales, mesCorto, hora, saludo } from '../../lib/fechas'
 import { permisos } from '../../lib/permisos'
+import { supabase } from '../../lib/supabase'
 import { ROL_LABEL } from '../../lib/tipos'
 import { useInicio } from './useInicio'
 
@@ -32,6 +33,13 @@ export default function Inicio() {
   const toast = useToast()
   const d = useInicio(membresia?.grupo_id, membresia?.id, p.esLider, p.verServicios)
   const [grupos, setGrupos] = useState(false)
+  const [propuestasNuevas, setPropuestasNuevas] = useState(0)
+
+  useEffect(() => {
+    if (!p.esLider || !membresia) return
+    void supabase.from('propuestas').select('id', { count: 'exact', head: true }).eq('grupo_id', membresia.grupo_id).eq('estado', 'nueva')
+      .then(({ count }) => setPropuestasNuevas(count ?? 0))
+  }, [p.esLider, membresia])
 
   const primerNombre = perfil?.nombre.split(' ')[0] ?? ''
   const otros = d.equipo.filter((e) => e.id !== membresia?.id)
@@ -124,6 +132,14 @@ export default function Inicio() {
           <Link to="/turnos" className="rise alerta" style={{ animationDelay: '130ms' }}>
             <Icon name="alerta" size={18} strokeWidth={2.2} />
             <span className="grow">{d.sinCubrir === 1 ? '1 puesto sin cubrir este mes' : `${d.sinCubrir} puestos sin cubrir este mes`}</span>
+            <Icon name="derecha" size={16} strokeWidth={2.4} />
+          </Link>
+        )}
+
+        {p.esLider && propuestasNuevas > 0 && (
+          <Link to="/propuestas" className="rise alerta" style={{ animationDelay: '145ms', background: 'var(--soft)', borderColor: 'var(--line)', color: 'var(--ink)' }}>
+            <Icon name="bandeja" size={18} strokeWidth={2.2} />
+            <span className="grow">{propuestasNuevas === 1 ? '1 propuesta nueva de la congregación' : `${propuestasNuevas} propuestas nuevas de la congregación`}</span>
             <Icon name="derecha" size={16} strokeWidth={2.4} />
           </Link>
         )}
