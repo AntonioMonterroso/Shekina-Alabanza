@@ -6,7 +6,8 @@ import type { Integrante } from '../../hooks/useEquipo'
 import { aInputLocal, desdeInputLocal, fechaCorta } from '../../lib/fechas'
 import { ROL_LABEL } from '../../lib/tipos'
 import Comentarios from './Comentarios'
-import { actualizarSesion, cargarFicha, guardarFicha, ponerTutor, quitarTutor, type Asistencia, type EstadoAsistencia, type Practica, type Sesion } from './api'
+import ProgresoAlumno from './ProgresoAlumno'
+import { actualizarSesion, cargarFicha, guardarFicha, ponerTutor, quitarTutor, type Asistencia, type Curso, type EstadoAsistencia, type Practica, type Sesion } from './api'
 
 const ESTADOS: [EstadoAsistencia, string][] = [['presente', 'Presente'], ['ausente', 'Ausente'], ['justificado', 'Justificado']]
 
@@ -222,13 +223,18 @@ interface PropsAlumno {
   verFicha: boolean
   /** si quien mira puede escribir comentarios a este alumno */
   escribir?: { claseId: string; autorId: string; puedeBorrarTodos: boolean }
+  /** curso de la clase: de ahí salen los niveles */
+  curso: Curso | null
+  /** un líder puede pasarlo al equipo */
+  puedePasar: boolean
+  onPasar: (alumnoId: string) => void
   onCerrar: () => void
   onQuitar: (alumnoId: string) => Promise<boolean>
 }
 
 const edad = (nac: string) => Math.floor((Date.now() - new Date(`${nac}T12:00:00Z`).getTime()) / (365.25 * 86_400_000))
 
-function ContenidoAlumno({ alumno, tutoresPosibles, nombreDe, puedeEditar, verFicha, escribir, onCerrar, onQuitar }: Omit<PropsAlumno, 'alumno'> & { alumno: Integrante }) {
+function ContenidoAlumno({ alumno, tutoresPosibles, nombreDe, puedeEditar, verFicha, escribir, curso, puedePasar, onPasar, onCerrar, onQuitar }: Omit<PropsAlumno, 'alumno'> & { alumno: Integrante }) {
   const [nacimiento, setNacimiento] = useState('')
   const [objetivo, setObjetivo] = useState('')
   const [tutores, setTutores] = useState<string[]>([])
@@ -299,6 +305,12 @@ function ContenidoAlumno({ alumno, tutoresPosibles, nombreDe, puedeEditar, verFi
             )}
           </div>
         </>
+      )}
+      {escribir && (
+        <div className="flex flex-col gap-1.5">
+          <span className="px-1 text-sm font-extrabold">Avance{curso ? ` en ${curso.nombre}` : ''}</span>
+          <ProgresoAlumno alumnoId={alumno.id} alumnoNombre={alumno.nombre} curso={curso} porId={escribir.autorId} puedePasar={puedePasar && alumno.rol === 'alumno'} esAlumno={alumno.rol === 'alumno'} onPasar={() => onPasar(alumno.id)} />
+        </div>
       )}
       <div className="flex flex-col gap-1.5">
         <span className="px-1 text-sm font-extrabold">Comentarios</span>

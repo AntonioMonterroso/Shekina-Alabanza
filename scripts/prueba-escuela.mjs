@@ -124,6 +124,40 @@ export default async function (db, como) {
   assert.equal((await como(db, U.a1, `delete from escuela_comentarios`)).affectedRows, 0, 'el alumno no borra')
   assert.equal((await como(db, U.coord, `delete from escuela_comentarios`)).affectedRows, 1, 'la coordinación sí')
 
+  // Niveles, hitos y recomendación para el equipo
+  await db.exec(`insert into escuela_niveles (id, curso_id, orden, nombre) values
+    ('70000000-0000-0000-0000-000000000001','${CU}',1,'Fundamentos'), ('70000000-0000-0000-0000-000000000002','${CU}',2,'Intermedio')`)
+  assert.equal(await n(U.a1, 'select 1 from escuela_niveles'), 2, 'todo el grupo ve los niveles')
+  assert.equal((await como(db, U.maestro, `update escuela_niveles set nombre = 'x'`)).affectedRows, 0, 'el maestro no edita niveles')
+  await como(db, U.coord, `insert into escuela_niveles (curso_id, orden, nombre) values ('${CU}',3,'Avanzado')`)
+  await falla(U.coord, `insert into escuela_niveles (curso_id, orden, nombre) values ('${CU}',3,'Repetido')`) // orden único por curso
+
+  const N1 = '70000000-0000-0000-0000-000000000001', N2 = '70000000-0000-0000-0000-000000000002'
+  await como(db, U.maestro, `insert into escuela_hitos (alumno_id, nivel_id, por) values ('${A1}','${N1}','${MAESTRO}')`) // el maestro marca un hito
+  await falla(U.musico, `insert into escuela_hitos (alumno_id, nivel_id) values ('${A2}','${N1}')`) // A2 no es alumno de ese maestro
+  await falla(U.a1, `insert into escuela_hitos (alumno_id, nivel_id) values ('${A1}','${N2}')`) // el alumno no se califica solo
+  await falla(U.tutor, `insert into escuela_hitos (alumno_id, nivel_id) values ('${A1}','${N2}')`)
+  assert.equal(await n(U.a1, 'select 1 from escuela_hitos'), 1)
+  assert.equal(await n(U.tutor, 'select 1 from escuela_hitos'), 1)
+  assert.equal(await n(U.a2, 'select 1 from escuela_hitos'), 0)
+  assert.equal(await n(U.musico, 'select 1 from escuela_hitos'), 1, 'el maestro del ministerio de A1 lo ve')
+
+  // Recomendar: lo hace quien le enseña (incluso el externo) o la coordinación; nadie más
+  await como(db, U.maestro, `select recomendar_alumno('${A1}', 'Toca bien y es puntual')`)
+  assert.equal(await n(U.coord, "select 1 from escuela_alumnos where listo_equipo_at is not null"), 1)
+  assert.equal(await n(U.a1, "select 1 from escuela_alumnos where listo_equipo_nota = 'Toca bien y es puntual'"), 1)
+  await falla(U.a1, `select recomendar_alumno('${A1}', 'yo mismo')`)
+  await falla(U.tutor, `select recomendar_alumno('${A1}', 'mi hijo')`)
+  await falla(U.musico, `select recomendar_alumno('${A2}', 'no es mi alumno')`)
+  await falla(U.a2, `select quitar_recomendacion('${A1}')`)
+  await como(db, U.coord, `select quitar_recomendacion('${A1}')`)
+  assert.equal(await n(U.coord, "select 1 from escuela_alumnos where listo_equipo_at is not null"), 0)
+
+  // Pasar al equipo: solo un líder cambia el rol (la propietaria aquí)
+  await como(db, U.prop, `update miembros set rol = 'musico', puestos = array['Piano'] where id = '${A1}'`)
+  assert.equal((await como(db, U.prop, `select rol from miembros where id = '${A1}'`)).rows[0].rol, 'musico')
+  assert.equal((await como(db, U.coord, `update miembros set rol = 'voz' where id = '${A2}'`)).affectedRows, 0, 'la coordinación sin ser líder no cambia roles')
+
   // Cursos editables solo por coordinación; todos los del grupo los leen
   assert.equal(await n(U.a1, 'select 1 from escuela_cursos'), 1)
   assert.equal((await como(db, U.maestro, `update escuela_cursos set nombre = 'x'`)).affectedRows, 0, 'maestro no edita cursos')

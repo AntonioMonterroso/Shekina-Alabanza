@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import Hoja from '../../components/Hoja'
 import { ROL_LABEL } from '../../lib/tipos'
 import type { Integrante } from '../../hooks/useEquipo'
+import EditorNiveles from './EditorNiveles'
 import { COLORES, estiloColor, type Clase, type ColorCurso, type Curso } from './api'
 
 // ---------------- Curso ----------------
@@ -39,6 +40,7 @@ function FormCurso({ curso, onCerrar, onGuardar }: Omit<PropsCurso, 'curso'> & {
           <button key={c} type="button" role="radio" aria-checked={c === color} aria-label={`Color ${c}`} onClick={() => setColor(c)} className="grid h-11 w-11 place-items-center rounded-2xl" style={{ ...estiloColor(c), outline: c === color ? '3px solid var(--primary)' : 'none', outlineOffset: 2 }}>{c === color ? '✓' : ''}</button>
         ))}
       </div>
+      {curso && <EditorNiveles cursoId={curso.id} />}
       {curso && (
         <div className="flex items-center gap-3 px-1">
           <button type="button" role="switch" aria-checked={activo} aria-label="Curso activo" className={'sw' + (activo ? ' on' : '')} onClick={() => setActivo(!activo)} />

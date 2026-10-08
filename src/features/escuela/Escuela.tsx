@@ -6,10 +6,11 @@ import { useAuth } from '../../hooks/authContext'
 import { useEquipo } from '../../hooks/useEquipo'
 import { borrarClase, cargarClases, cargarCursos, cargarInscritos, estiloColor, guardarClase, guardarCurso, type Clase, type Curso } from './api'
 import { HojaClase, HojaCurso } from './HojasAdmin'
+import Listos from './Listos'
 import MiPractica from './MiPractica'
 import { useAccesoEscuela } from './useAcceso'
 
-type Pestana = 'practica' | 'clases' | 'cursos'
+type Pestana = 'practica' | 'clases' | 'cursos' | 'listos'
 
 export default function Escuela() {
   const { membresia } = useAuth()
@@ -22,7 +23,7 @@ export default function Escuela() {
     const p: [Pestana, string][] = []
     if (acceso.estudia || acceso.esTutor) p.push(['practica', acceso.esTutor ? 'Mis hijos' : 'Mi práctica'])
     if (acceso.coordina || acceso.ensena) p.push(['clases', 'Clases'])
-    if (acceso.coordina) p.push(['cursos', 'Cursos'])
+    if (acceso.coordina) p.push(['cursos', 'Cursos'], ['listos', 'Al equipo'])
     return p
   }, [acceso.estudia, acceso.esTutor, acceso.coordina, acceso.ensena])
   const [elegida, setElegida] = useState<Pestana | null>(null)
@@ -93,6 +94,8 @@ export default function Escuela() {
         {actual === null && <p className="m-0 rounded-2xl p-4" style={{ background: 'var(--soft)', color: 'var(--muted)' }}>No tienes nada que ver en la Escuela todavía.</p>}
 
         {actual === 'practica' && <MiPractica />}
+
+        {actual === 'listos' && <Listos />}
 
         {actual === 'clases' && (cargando ? <div className="esqueleto h-32" /> : clases.length === 0 ? (
           <p className="m-0 rounded-2xl p-4 text-base" style={{ background: 'var(--soft)', color: 'var(--muted)' }}>

@@ -28,7 +28,7 @@ Perfil de alumno (nacimiento, objetivo) y tutores (tutor ↔ alumno).
 ## Fases
 1. **Base** — cursos, clases, inscripciones, sesiones con asistencia, práctica semanal con check. *(hecha)*
 2. **Acompañamiento** — materiales por curso (enlaces y archivos), comentarios del maestro, modo práctica con temporizador y metrónomo, historial de semanas, tempo sugerido por práctica. *(hecha; migración 11)*
-3. **Crecimiento** — niveles/hitos, "listo para el equipo" (el líder pasa al alumno a músico), vista del tutor.
+3. **Crecimiento** — niveles editables por curso, hitos que marca el maestro, recomendación "listo para el equipo" y paso a músico/voz/sonido/multimedia por un líder, sendero visible para el alumno y su tutor. *(hecha; migración 12)*
 4. **Extras** — grabaciones, recordatorios push (ya existen las notificaciones), afinador.
 
 ## Diseño

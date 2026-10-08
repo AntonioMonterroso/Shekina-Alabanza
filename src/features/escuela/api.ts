@@ -258,3 +258,71 @@ export async function borrarComentario(id: string): Promise<boolean> {
   const { error } = await supabase.from('escuela_comentarios').delete().eq('id', id)
   return !error
 }
+
+// ---------------- Niveles, hitos y paso al equipo ----------------
+export interface Nivel { id: string; curso_id: string; orden: number; nombre: string; descripcion: string | null }
+export interface Hito { id: string; alumno_id: string; nivel_id: string; fecha: string; nota: string | null }
+
+export async function cargarNiveles(cursoIds: string[]): Promise<Nivel[]> {
+  if (cursoIds.length === 0) return []
+  const { data } = await supabase.from('escuela_niveles').select('id, curso_id, orden, nombre, descripcion').in('curso_id', cursoIds).order('orden')
+  return (data ?? []) as Nivel[]
+}
+
+export async function guardarNivel(cursoId: string, id: string | null, orden: number, nombre: string): Promise<boolean> {
+  const { error } = id
+    ? await supabase.from('escuela_niveles').update({ nombre }).eq('id', id)
+    : await supabase.from('escuela_niveles').insert({ curso_id: cursoId, orden, nombre })
+  return !error
+}
+
+export async function borrarNivel(id: string): Promise<boolean> {
+  const { error } = await supabase.from('escuela_niveles').delete().eq('id', id)
+  return !error
+}
+
+export async function cargarHitos(alumnoId: string): Promise<Hito[]> {
+  const { data } = await supabase.from('escuela_hitos').select('id, alumno_id, nivel_id, fecha, nota').eq('alumno_id', alumnoId)
+  return (data ?? []) as Hito[]
+}
+
+export async function marcarHito(alumnoId: string, nivelId: string, por: string, nota: string | null): Promise<boolean> {
+  const { error } = await supabase.from('escuela_hitos').upsert({ alumno_id: alumnoId, nivel_id: nivelId, por, nota }, { onConflict: 'alumno_id,nivel_id' })
+  return !error
+}
+
+export async function quitarHito(id: string): Promise<boolean> {
+  const { error } = await supabase.from('escuela_hitos').delete().eq('id', id)
+  return !error
+}
+
+export async function recomendarAlumno(alumnoId: string, nota: string | null): Promise<boolean> {
+  const { error } = await supabase.rpc('recomendar_alumno', { p_alumno: alumnoId, p_nota: nota ?? '' })
+  return !error
+}
+
+export async function quitarRecomendacion(alumnoId: string): Promise<boolean> {
+  const { error } = await supabase.rpc('quitar_recomendacion', { p_alumno: alumnoId })
+  return !error
+}
+
+/** Alumnos que el maestro recomendó para el equipo y aún no han pasado. */
+export async function cargarRecomendados(): Promise<{ miembro_id: string; nota: string | null; fecha: string }[]> {
+  const { data } = await supabase.from('escuela_alumnos').select('miembro_id, listo_equipo_nota, listo_equipo_at').not('listo_equipo_at', 'is', null).order('listo_equipo_at')
+  return ((data ?? []) as { miembro_id: string; listo_equipo_nota: string | null; listo_equipo_at: string }[]).map((x) => ({ miembro_id: x.miembro_id, nota: x.listo_equipo_nota, fecha: x.listo_equipo_at }))
+}
+
+export type RolEquipo = 'musico' | 'voz' | 'sonido' | 'multimedia'
+
+/** Un líder pasa al alumno al equipo: cambia su rol y los puestos que puede cubrir, y limpia la recomendación. */
+export async function pasarAlEquipo(alumnoId: string, rol: RolEquipo, puestos: string[]): Promise<string | null> {
+  const { error } = await supabase.from('miembros').update({ rol, puestos }).eq('id', alumnoId)
+  if (error) return 'No se pudo pasar al equipo. Solo un líder puede hacerlo.'
+  await supabase.rpc('quitar_recomendacion', { p_alumno: alumnoId })
+  return null
+}
+
+export async function cargarPuestos(grupoId: string): Promise<string[]> {
+  const { data } = await supabase.from('puestos').select('nombre').eq('grupo_id', grupoId).order('orden')
+  return ((data ?? []) as { nombre: string }[]).map((x) => x.nombre)
+}

@@ -8,8 +8,9 @@ import { fechaCorta, hoyGT, hora, iniciales } from '../../lib/fechas'
 import { lunesDe, sumarDias } from '../../lib/semana'
 import {
   borrarPractica, borrarSesion, cargarAsistencia, cargarClase, cargarCursos, cargarInscritos, cargarPracticas, cargarRegistros, cargarSesiones,
-  crearSesion, desinscribir, estiloColor, guardarPractica, inscribir, marcarAsistencia, type Asistencia, type Clase as ClaseT, type Curso, type Practica, type Registro, type Sesion,
+  cargarPuestos, crearSesion, desinscribir, estiloColor, guardarPractica, inscribir, marcarAsistencia, pasarAlEquipo, type Asistencia, type Clase as ClaseT, type Curso, type Practica, type Registro, type Sesion,
 } from './api'
+import HojaPasar from './HojaPasar'
 import Materiales from './Materiales'
 import { HojaAgregarAlumno, HojaAlumno, HojaAsistencia, HojaPractica } from './HojasClase'
 import { useAccesoEscuela } from './useAcceso'
@@ -19,7 +20,10 @@ export default function Clase() {
   const { membresia, rol } = useAuth()
   const acceso = useAccesoEscuela()
   const toast = useToast()
-  const equipo = useEquipo(membresia?.grupo_id)
+  const [versionEquipo, setVersionEquipo] = useState(0)
+  const equipo = useEquipo(membresia?.grupo_id, versionEquipo)
+  const [puestos, setPuestos] = useState<string[]>([])
+  const [pasando, setPasando] = useState<string | null>(null)
 
   const [clase, setClase] = useState<ClaseT | null | undefined>(undefined)
   const [curso, setCurso] = useState<Curso | null>(null)
@@ -58,6 +62,7 @@ export default function Clase() {
   }, [id, membresia, semanas])
 
   useEffect(() => { void cargar() }, [cargar])
+  useEffect(() => { if (membresia) void cargarPuestos(membresia.grupo_id).then(setPuestos) }, [membresia])
 
   async function salvarPractica(d: Omit<Practica, 'id'>, pid?: string) {
     const ok = await guardarPractica(d, pid)
@@ -79,6 +84,11 @@ export default function Clase() {
     const ok = await inscribir(id!, alumnoId)
     if (ok) await cargar()
     return ok
+  }
+  async function pasar(alumnoId: string, r: Parameters<typeof pasarAlEquipo>[1], p: string[]) {
+    const fallo = await pasarAlEquipo(alumnoId, r, p)
+    if (!fallo) { toast('Ya es parte del equipo'); setVersionEquipo((v) => v + 1) }
+    return fallo
   }
   async function sacarAlumno(alumnoId: string) {
     const ok = await desinscribir(id!, alumnoId)
@@ -199,7 +209,8 @@ export default function Clase() {
         </>
       )}
       {acceso.coordina && <HojaAgregarAlumno abierta={agregando} candidatos={candidatos} onCerrar={() => setAgregando(false)} onInscribir={salvarInscripcion} />}
-      <HojaAlumno alumno={alumnoObjetivo} tutoresPosibles={equipo.filter((m) => m.rol === 'tutor')} nombreDe={nombreDe} puedeEditar={acceso.coordina} verFicha={rol !== 'maestro'} escribir={gestiona && membresia ? { claseId: clase.id, autorId: membresia.id, puedeBorrarTodos: acceso.coordina } : undefined} onCerrar={() => setAlumnoAbierto(null)} onQuitar={sacarAlumno} />
+      <HojaPasar alumno={pasando ? { id: pasando, nombre: nombreDe(pasando) } : null} puestos={puestos} onCerrar={() => setPasando(null)} onPasar={pasar} />
+      <HojaAlumno alumno={alumnoObjetivo} tutoresPosibles={equipo.filter((m) => m.rol === 'tutor')} nombreDe={nombreDe} puedeEditar={acceso.coordina} verFicha={rol !== 'maestro'} curso={curso} puedePasar={rol === 'propietario' || rol === 'lider'} onPasar={(a) => { setAlumnoAbierto(null); setPasando(a) }} escribir={gestiona && membresia ? { claseId: clase.id, autorId: membresia.id, puedeBorrarTodos: acceso.coordina } : undefined} onCerrar={() => setAlumnoAbierto(null)} onQuitar={sacarAlumno} />
     </div>
   )
 }

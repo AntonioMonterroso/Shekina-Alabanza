@@ -6,7 +6,8 @@ import { useAuth } from '../../hooks/authContext'
 import { useEquipo } from '../../hooks/useEquipo'
 import { diaNum, fechaCorta, hoyGT, hora, mediodiaGT } from '../../lib/fechas'
 import { diasDeSemana, INICIAL_DIA, lunesDe, sumarDias } from '../../lib/semana'
-import { anotarPractica, borrarRegistro, cargarClases, cargarHijos, cargarPracticas, cargarRegistros, clasesDeAlumno, estiloColor, proximaSesion, cargarCursos, type Clase, type Curso, type Practica, type Registro, type Sesion } from './api'
+import Camino from './Camino'
+import { anotarPractica, borrarRegistro, cargarClases, cargarHijos, cargarHitos, cargarNiveles, cargarPracticas, cargarRegistros, clasesDeAlumno, estiloColor, proximaSesion, cargarCursos, type Clase, type Curso, type Hito, type Nivel, type Practica, type Registro, type Sesion } from './api'
 import Comentarios from './Comentarios'
 import HojaRegistro from './HojaRegistro'
 import Materiales from './Materiales'
@@ -26,6 +27,8 @@ export default function MiPractica() {
   const [practicas, setPracticas] = useState<Practica[]>([])
   const [registros, setRegistros] = useState<Registro[]>([])
   const [sesion, setSesion] = useState<Sesion | null>(null)
+  const [niveles, setNiveles] = useState<Nivel[]>([])
+  const [hitos, setHitos] = useState<Hito[]>([])
   const [cargando, setCargando] = useState(true)
   const [anotando, setAnotando] = useState<Practica | null>(null)
 
@@ -50,6 +53,10 @@ export default function MiPractica() {
     setPracticas(prs)
     setRegistros(await cargarRegistros(prs.map((x) => x.id), lunes, alumnoId))
     setSesion(await proximaSesion(mias.map((c) => c.id)))
+    const cursosMios = [...new Set(mias.map((c) => c.curso_id))]
+    const [nv, ht] = await Promise.all([cargarNiveles(cursosMios), cargarHitos(alumnoId)])
+    setNiveles(nv)
+    setHitos(ht)
     setCargando(false)
   }, [alumnoId, membresia, lunes])
 
@@ -151,6 +158,9 @@ export default function MiPractica() {
               </article>
             )
           })}
+
+          {cursos.filter((c) => clases.some((x) => x.curso_id === c.id) && niveles.some((n) => n.curso_id === c.id)).length > 0 && <h2 className="display m-0 px-1 pt-1 text-xl font-semibold">Tu camino</h2>}
+          {cursos.filter((c) => clases.some((x) => x.curso_id === c.id)).map((c) => <Camino key={c.id} curso={c} niveles={niveles} hitos={hitos} />)}
 
           {alumnoId && <Comentarios alumnoId={alumnoId} nombreDe={(i) => nombreDe(i)} titulo="Mensajes de tus maestros" />}
           <Materiales cursos={cursos.filter((c) => clases.some((x) => x.curso_id === c.id))} puedeEditar={false} />

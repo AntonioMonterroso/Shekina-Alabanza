@@ -5,7 +5,8 @@ import type { Rol } from '../lib/tipos'
 export interface Integrante { id: string; userId: string; nombre: string; rol: Rol; descripcion: string | null; puestos: string[] }
 
 /** Integrantes activos del grupo, con nombre (miembros no tiene FK directa a perfiles, así que van dos consultas). */
-export function useEquipo(grupoId: string | undefined) {
+/** `recargar`: cambia el número para volver a pedir el equipo (por ejemplo, después de cambiar un rol). */
+export function useEquipo(grupoId: string | undefined, recargar = 0) {
   const [equipo, setEquipo] = useState<Integrante[]>([])
   useEffect(() => {
     if (!grupoId) return
@@ -18,6 +19,6 @@ export function useEquipo(grupoId: string | undefined) {
       if (vivo) setEquipo((ms ?? []).map((m) => ({ id: m.id as string, userId: m.user_id as string, nombre: nombre.get(m.user_id as string) ?? '—', rol: m.rol as Rol, descripcion: m.descripcion as string | null, puestos: (m.puestos as string[] | null) ?? [] })))
     })()
     return () => { vivo = false }
-  }, [grupoId])
+  }, [grupoId, recargar])
   return equipo
 }
