@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Modo escenario</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500..600,100&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.st button,.st a{font:inherit;color:inherit}
+.ib{height:44px;min-width:44px;padding:0 10px;border:0;border-radius:14px;background:var(--panel);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;text-decoration:none;font-size:14px;font-weight:800;flex-shrink:0;transition:background .2s,color .2s}
+.ib:hover{background:var(--panel2)}
+.ib.on{background:var(--chord);color:var(--bg)}
+.ib:disabled{opacity:.35;cursor:default}
+.grp{display:flex;align-items:center;background:var(--panel);border-radius:14px;flex-shrink:0}
+.grp .ib{background:transparent}
+.grp .ib:hover{background:var(--panel2)}
+.val{min-width:34px;text-align:center;font-size:14px;font-weight:800}
+
+@keyframes inR{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes inL{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+.song.r{animation:inR .45s cubic-bezier(.2,.7,.2,1) both}
+.song.l{animation:inL .45s cubic-bezier(.2,.7,.2,1) both}
+@keyframes inR2{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes inL2{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+.song.r.f{animation-name:inR2}
+.song.l.f{animation-name:inL2}
+
+.sec{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:22px 0 6px 0;display:flex;align-items:center;gap:8px}
+.sec::after{content:"";flex:1;height:1px;background:var(--panel2)}
+.ln{display:flex;flex-wrap:wrap;align-items:flex-end;margin:0 0 6px 0}
+.sg{display:inline-flex;flex-direction:column;white-space:pre}
+.ch{font-weight:800;color:var(--chord);font-size:.78em;min-height:1.25em;line-height:1.25}
+.tx{line-height:1.35}
+.nochords .ch{display:none}
+
+.nav{flex:1;height:64px;border:0;border-radius:20px;background:var(--panel);display:flex;align-items:center;gap:10px;padding:0 14px;cursor:pointer;text-align:left;min-width:0;transition:background .2s}
+.nav:hover{background:var(--panel2)}
+.nav:disabled{opacity:.35;cursor:default}
+.nav.next{background:var(--chord);color:var(--bg);justify-content:flex-end;text-align:right}
+.nav.next:hover{filter:brightness(1.06)}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.live{width:8px;height:8px;border-radius:50%;background:var(--chord);animation:pulse 1.6s infinite}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition:none !important}}
+</style>
+</helmet>
+<main class="st" style="--bg: {{t.bg}}; --fg: {{t.fg}}; --muted: {{t.muted}}; --chord: {{t.chord}}; --panel: {{t.panel}}; --panel2: {{t.panel2}}; position: relative; width: 390px; height: 844px; background: {{t.bg}}; color: {{t.fg}}; font-family: Nunito, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; padding: 50px 16px 12px 16px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <a href="Home.dc.html" class="ib" aria-label="Salir del modo escenario">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </a>
+      <span style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+        <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: {{t.muted}}"><span class="live" aria-hidden="true"></span>Dom 11 oct · {{pos}} de {{total}}</span>
+        <span style="font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 22px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{song.title}}</span>
+      </span>
+      <span style="flex-shrink: 0; padding: 6px 10px; border-radius: 12px; background: {{t.panel}}; font-size: 13px; font-weight: 800; color: {{t.chord}}">{{keyLabel}}</span>
+    </div>
+    <div role="toolbar" aria-label="Controles" style="display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none">
+      <div class="grp" role="group" aria-label="Tono">
+        <button type="button" class="ib" aria-label="Bajar medio tono" onClick="{{down}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 12h12"></path></svg></button>
+        <span class="val" aria-live="polite">{{steps}}</span>
+        <button type="button" class="ib" aria-label="Subir medio tono" onClick="{{up}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 6v12M6 12h12"></path></svg></button>
+      </div>
+      <div class="grp" role="group" aria-label="Tamaño de letra">
+        <button type="button" class="ib" aria-label="Letra más pequeña" disabled="{{minFs}}" onClick="{{smaller}}" style="font-size: 13px">A</button>
+        <button type="button" class="ib" aria-label="Letra más grande" disabled="{{maxFs}}" onClick="{{bigger}}" style="font-size: 19px">A</button>
+      </div>
+      <button type="button" class="{{chCls}}" aria-pressed="{{chords}}" onClick="{{toggleChords}}">Acordes</button>
+      <button type="button" class="{{autoCls}}" aria-pressed="{{auto}}" aria-label="Desplazamiento automático" onClick="{{toggleAuto}}">
+        <sc-if value="{{auto}}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg></sc-if>
+        <sc-if value="{{notAuto}}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M6 14l6 6 6-6"></path></svg></sc-if>
+        <span>Auto</span>
+      </button>
+    </div>
+  </header>
+
+  <div ref="{{setBox}}" style="flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 0 20px 24px 20px">
+    <article class="{{songCls}}" style="font-size: {{fs}}px">
+      <p style="margin: 4px 0 0 0; font-size: 13px; font-weight: 700; color: {{t.muted}}">{{song.meta}}</p>
+      <sc-for list="{{sections}}" as="sec" hint-placeholder-count="3">
+        <div>
+          <div class="sec">{{sec.name}}</div>
+          <sc-for list="{{sec.lines}}" as="ln" hint-placeholder-count="2">
+            <div class="ln">
+              <sc-for list="{{ln}}" as="g" hint-placeholder-count="4">
+                <span class="sg"><span class="ch">{{g.c}}</span><span class="tx">{{g.w}}</span></span>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </article>
+  </div>
+
+  <footer style="flex-shrink: 0; display: flex; gap: 10px; padding: 12px 16px 28px 16px; background: {{t.bg}}; border-top: 1px solid {{t.panel2}}">
+    <button type="button" class="nav" disabled="{{isFirst}}" onClick="{{prev}}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0"><path d="M15 6l-6 6 6 6"></path></svg>
+      <span style="display: flex; flex-direction: column; min-width: 0">
+        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; opacity: .7">Anterior</span>
+        <span style="font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{prevTitle}}</span>
+      </span>
+    </button>
+    <button type="button" class="nav next" disabled="{{isLast}}" onClick="{{next}}">
+      <span style="display: flex; flex-direction: column; min-width: 0">
+        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; opacity: .75">Siguiente</span>
+        <span style="font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{nextTitle}}</span>
+      </span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0"><path d="M9 6l6 6-6 6"></path></svg>
+    </button>
+  </footer>
+  <sc-if value="{{blocked}}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="position: absolute; inset: 0; z-index: 8; background: {{t.bg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px; text-align: center">
+      <span style="width: 72px; height: 72px; border-radius: 24px; background: {{t.panel}}; color: {{t.chord}}; display: flex; align-items: center; justify-content: center">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9.5" rx="2.5"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      </span>
+      <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px; font-weight: 600; color: {{t.fg}}">El modo escenario no es para tu rol</h2>
+      <p style="margin: 0; font-size: 16px; line-height: 1.5; color: {{t.muted}}">Como {{rol}}, ves solo lo que te corresponde. Si necesitas acceso, pídeselo a un líder.</p>
+      <a href="Home.dc.html" style="margin-top: 6px; height: 50px; padding: 0 22px; border-radius: 16px; background: {{t.chord}}; color: {{t.bg}}; display: flex; align-items: center; font-size: 15px; font-weight: 800; text-decoration: none">Volver al inicio</a>
+    </div>
+  </sc-if>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"verComo":{"editor":"enum","options":["Líder","Músico","Voz","Sonido","Alumno"],"default":"Líder"},"tema":{"editor":"enum","options":["Salvia","Rosa"],"default":"Salvia"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { i: 0, dir: 'r', flip: 0, steps: 0, fs: 21, chords: null, auto: false };
+    this.box = null;
+    this.timer = null;
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  parse(src) {
+    return src.split('\n').map(line => {
+      const out = [];
+      const re = /\[([^\]]+)\]/g;
+      let last = 0, m, chord = '';
+      while ((m = re.exec(line))) {
+        if (m.index > last || chord) out.push({ c: chord, w: line.slice(last, m.index) });
+        chord = m[1]; last = re.lastIndex;
+      }
+      out.push({ c: chord, w: line.slice(last) || ' ' });
+      return out.filter((g, k) => g.c || g.w || k === 0);
+    });
+  }
+  tr(ch, n) {
+    const S = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const F = { Db: 'C#', Eb: 'D#', Gb: 'F#', Ab: 'G#', Bb: 'A#' };
+    return ch.replace(/^([A-G][#b]?)/, (r) => { const k = S.indexOf(F[r] || r); return S[(k + n + 120) % 12]; });
+  }
+  renderVals() {
+    const s = this.state;
+    const themes = {
+      Salvia: { bg: '#121A15', fg: '#EEF5EA', muted: '#93A898', chord: '#A9D4A0', panel: '#1E2A22', panel2: '#2A3A2F' },
+      Rosa: { bg: '#1E1517', fg: '#FBEDEA', muted: '#B39A9D', chord: '#EFBEB5', panel: '#2B1F22', panel2: '#3A2A2E' }
+    };
+    const t = themes[this.props.tema ?? 'Salvia'] || themes.Salvia;
+    const rol = this.props.verComo ?? 'Líder';
+    const chords = s.chords === null ? rol !== 'Voz' : s.chords;
+    const SONGS = [
+      { title: 'Abre las puertas', key: 'D', meta: 'Canción de ejemplo · Bienvenida · 92 BPM', sections: [
+        ['Verso 1', '[D]Abre las [G]puertas, que [D]entre la luz\n[Bm]canta mi [G]alma, [A]gracias Je[D]sús'],
+        ['Coro', '[G]Santo es tu [D]nombre, [A]fiel es tu a[Bm]mor\n[G]todo lo que [D]soy te lo [A]doy, Se[D]ñor'],
+        ['Verso 2', '[D]En la ma[G]ñana te [D]buscaré\n[Bm]y en la [G]noche [A]descansa[D]ré'],
+        ['Coro', '[G]Santo es tu [D]nombre, [A]fiel es tu a[Bm]mor\n[G]todo lo que [D]soy te lo [A]doy, Se[D]ñor']
+      ] },
+      { title: 'Quieto y en calma', key: 'G', meta: 'Canción de ejemplo · Adoración · 70 BPM', sections: [
+        ['Verso', '[G]Quieto y en [C]calma me [G]acerco a ti\n[Em]tu voz me [C]llama, [D]aquí estoy, a[G]quí'],
+        ['Coro', '[C]Llena este [G]lugar, [D]llena mi [Em]ser\n[C]que tu pre[G]sencia [D]sea mi pla[G]cer'],
+        ['Puente', '[Em]Más de [C]ti, [G]menos de [D]mí\n[Em]más de [C]ti, [D]solo de ti']
+      ] },
+      { title: 'Damos lo nuestro', key: 'A', meta: 'Canción de ejemplo · Ofrenda · 84 BPM', sections: [
+        ['Verso', '[A]Damos lo [D]nuestro con [A]gratitud\n[F#m]todo es tu[D]yo, [E]Dios de vir[A]tud'],
+        ['Coro', '[D]Gracias, gra[A]cias, [E]por tu bon[F#m]dad\n[D]hoy y por [A]siempre [E]te alaba[A]rán']
+      ] }
+    ];
+    const song = SONGS[s.i];
+    const sections = song.sections.map(([name, src]) => ({
+      name,
+      lines: this.parse(src).map(line => line.map(g => ({ c: g.c ? this.tr(g.c, s.steps) : '', w: g.w })))
+    }));
+    const go = (d) => () => {
+      const i = s.i + d;
+      if (i < 0 || i >= SONGS.length) return;
+      if (this.box) this.box.scrollTop = 0;
+      this.setState({ i, dir: d > 0 ? 'r' : 'l', flip: s.flip + 1, steps: 0 });
+    };
+    return {
+      t, rol, song, sections, blocked: ['Sonido', 'Alumno'].indexOf(rol) >= 0,
+      pos: s.i + 1, total: SONGS.length,
+      keyLabel: 'Tono ' + this.tr(song.key, s.steps) + (s.steps ? ' (orig. ' + song.key + ')' : ''),
+      steps: s.steps > 0 ? '+' + s.steps : String(s.steps),
+      up: () => this.setState({ steps: s.steps >= 6 ? s.steps : s.steps + 1 }),
+      down: () => this.setState({ steps: s.steps <= -6 ? s.steps : s.steps - 1 }),
+      fs: s.fs, minFs: s.fs <= 16, maxFs: s.fs >= 32,
+      smaller: () => this.setState({ fs: Math.max(16, s.fs - 2) }),
+      bigger: () => this.setState({ fs: Math.min(32, s.fs + 2) }),
+      chords,
+      chCls: 'ib' + (chords ? ' on' : ''),
+      toggleChords: () => this.setState({ chords: !chords }),
+      songCls: 'song ' + s.dir + (chords ? '' : ' nochords') + (s.flip % 2 ? ' f' : ''),
+      auto: s.auto, notAuto: !s.auto,
+      autoCls: 'ib' + (s.auto ? ' on' : ''),
+      toggleAuto: () => {
+        clearInterval(this.timer);
+        if (!s.auto) this.timer = setInterval(() => { if (this.box) this.box.scrollTop += 1; }, 45);
+        this.setState({ auto: !s.auto });
+      },
+      setBox: (el) => { this.box = el; },
+      isFirst: s.i === 0, isLast: s.i === SONGS.length - 1,
+      prevTitle: s.i > 0 ? SONGS[s.i - 1].title : '—',
+      nextTitle: s.i < SONGS.length - 1 ? SONGS[s.i + 1].title : 'Fin del servicio',
+      prev: go(-1), next: go(1)
+    };
+  }
+}
+</script>
+</body>
+</html>

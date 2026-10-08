@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Servicios</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500..600,100&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.app a{color:var(--primary)}
+.app button{font:inherit;color:inherit}
+
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.rise{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes morph{0%,100%{border-radius:58% 42% 55% 45%/48% 60% 40% 52%;transform:translate(0,0) rotate(0)}50%{border-radius:42% 58% 40% 60%/58% 44% 56% 42%;transform:translate(-12px,10px) rotate(10deg)}}
+.blob{position:absolute;animation:morph 16s ease-in-out infinite}
+
+.iconbtn{width:44px;height:44px;border:0;border-radius:16px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;color:var(--ink);box-shadow:0 8px 20px -14px var(--ink);text-decoration:none;flex-shrink:0;cursor:pointer}
+.iconbtn.on{background:var(--primary);color:#FFFFFF}
+
+.svc{display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:2px 20px;scrollbar-width:none;flex-shrink:0}
+.svc::-webkit-scrollbar{display:none}
+.schip{flex-shrink:0;min-height:52px;padding:6px 14px;border:1.5px solid var(--line);border-radius:16px;background:#FFFFFF;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;line-height:1.15;transition:background .2s,border-color .2s,color .2s}
+.schip:hover{border-color:var(--primary)}
+.schip.on{background:var(--primary);border-color:var(--primary);color:#FFFFFF}
+.schip small{font-size:12px;font-weight:700;opacity:.8}
+.schip b{font-size:15px;font-weight:800}
+
+.head{flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:24px;background:var(--card)}
+.sw{position:relative;width:52px;height:32px;border:0;border-radius:16px;background:rgba(255,255,255,.9);cursor:pointer;flex-shrink:0;transition:background .3s}
+.sw::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:var(--line);box-shadow:0 2px 6px rgba(0,0,0,.12);transition:transform .35s cubic-bezier(.3,1.3,.5,1),background .3s}
+.sw.on{background:var(--primary)}
+.sw.on::after{transform:translateX(20px);background:#FFFFFF}
+
+.item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:20px;background:#FFFFFF;border:1.5px solid var(--line)}
+.item.a{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+.item.part{background:transparent;border-style:dashed}
+.n{width:30px;height:30px;border-radius:10px;background:var(--soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.key{padding:5px 9px;border-radius:9px;background:var(--soft);color:var(--primary);font-size:12px;font-weight:800;flex-shrink:0}
+.warn{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:800;color:#8A5A12}
+.mv{width:36px;height:44px;border:0;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.mv:disabled{opacity:.35;cursor:default}
+.mv.del{background:#FBE3DF;color:#9A2A1F}
+
+.add{flex-shrink:0;height:52px;border:1.5px dashed var(--primary);border-radius:18px;background:transparent;color:var(--primary);font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.add:hover{background:var(--soft)}
+
+.tab{flex:1;height:60px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;border-radius:16px;text-decoration:none}
+.app a.tab{color:var(--muted)}
+.fab{text-decoration:none;width:60px;height:60px;margin-top:-26px;border:0;border-radius:22px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 12px 24px -10px var(--primary)}
+
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(100%)}}
+.scrim{animation:fade .3s ease both}
+.sheet{animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+.pick{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:60px;border:1.5px solid var(--line);border-radius:18px;background:#FFFFFF;cursor:pointer;text-align:left;width:100%;transition:border-color .2s}
+.pick:hover{border-color:var(--primary)}
+
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,-12px)}12%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-12px)}}
+.toast{position:absolute;left:50%;top:54px;padding:12px 18px;border-radius:16px;background:var(--ink);color:#fff;font-size:14px;font-weight:700;white-space:nowrap;animation:toastIn 2.4s ease both;display:flex;align-items:center;gap:8px;z-index:5}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition:none !important}}
+</style>
+</helmet>
+<main class="app" style="--primary: {{t.primary}}; --ink: {{t.ink}}; --muted: {{t.muted}}; --line: {{t.line}}; --soft: {{t.soft}}; --card: {{t.card}}; position: relative; width: 390px; height: 844px; background: {{t.bg}}; font-family: Nunito, system-ui, sans-serif; color: {{t.ink}}; overflow: hidden">
+
+  <div aria-hidden="true" class="blob" style="width: 260px; height: 240px; right: -120px; top: -100px; background: {{t.blob1}}"></div>
+
+  <div style="position: relative; height: 100%; display: flex; flex-direction: column; gap: 14px; padding: 54px 20px 0 20px">
+
+    <header class="rise" style="animation-delay: 0ms; flex-shrink: 0; display: flex; align-items: center; gap: 12px">
+      <a href="Home.dc.html" class="iconbtn" aria-label="Volver al inicio">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+        <h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1">Servicios</h1>
+        <span style="font-size: 14px; font-weight: 700; color: {{t.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">[Grupo de alabanza 1]</span>
+      </div>
+      <sc-if value="{{isLeader}}" hint-placeholder-val="{{ true }}"><button type="button" class="{{editCls}}" aria-pressed="{{editing}}" aria-label="Editar orden" onClick="{{toggleEdit}}">
+        <sc-if value="{{editing}}" hint-placeholder-val="{{ false }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+        </sc-if>
+        <sc-if value="{{notEditing}}" hint-placeholder-val="{{ true }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"></path><path d="M13.5 6.5l4 4"></path></svg>
+        </sc-if>
+      </button></sc-if>
+    </header>
+
+    <div class="rise svc" role="tablist" aria-label="Elegir servicio" style="animation-delay: 80ms">
+      <sc-for list="{{services}}" as="s" hint-placeholder-count="4">
+        <button type="button" role="tab" aria-selected="{{s.on}}" class="{{s.cls}}" onClick="{{s.pick}}"><small>{{s.dia}}</small><b>{{s.num}}</b></button>
+      </sc-for>
+    </div>
+
+    <section class="rise head" style="animation-delay: 140ms">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px">
+        <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+          <span style="font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: {{t.primary}}">{{cur.kind}}</span>
+          <span style="font-size: 19px; font-weight: 800">{{cur.fecha}}</span>
+          <span style="font-size: 14px; color: {{t.muted}}">{{cur.hora}} · Dirige {{cur.lead}} · ≈ {{mins}} min</span>
+        </span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 12px; border-radius: 16px; background: rgba(255,255,255,.7)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: {{t.primary}}; flex-shrink: 0"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17M12 3.5c2.5 2.6 3.5 5.4 3.5 8.5s-1 5.9-3.5 8.5c-2.5-2.6-3.5-5.4-3.5-8.5s1-5.9 3.5-8.5z"></path></svg>
+        <span style="flex-grow: 1; font-size: 14px; font-weight: 800">{{pubText}}</span>
+        <sc-if value="{{isLeader}}" hint-placeholder-val="{{ true }}"><button type="button" role="switch" aria-checked="{{pub}}" aria-label="Mostrar en la página pública" class="{{swCls}}" onClick="{{togglePub}}"></button></sc-if>
+      </div>
+    </section>
+
+    <div style="flex: 1 1 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin: 0 -20px; padding: 0 20px 112px 20px">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 4px">
+        <span style="font-size: 15px; font-weight: 800">Orden del culto</span>
+        <a href="Shifts.dc.html" style="font-size: 14px; font-weight: 800; text-decoration: none; display: flex; align-items: center; gap: 4px; min-height: 32px">Ver equipo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></a>
+      </div>
+      <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+        <div class="{{it.cls}}" style="animation-delay: {{it.delay}}">
+          <span class="n">{{it.n}}</span>
+          <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0; flex-grow: 1">
+            <span style="font-size: 15px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{it.title}}</span>
+            <span style="font-size: 13px; color: {{t.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{it.sub}}</span>
+            <sc-if value="{{it.hasWarn}}" hint-placeholder-val="{{ false }}">
+              <span class="warn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9"></path><path d="M12 7v5l3 2"></path></svg>{{it.warn}}</span>
+            </sc-if>
+          </span>
+          <sc-if value="{{notEditing}}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{it.isSong}}" hint-placeholder-val="{{ true }}">
+              <span class="key">{{it.key}}</span>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{editing}}" hint-placeholder-val="{{ false }}">
+            <button type="button" class="mv" aria-label="{{it.upLabel}}" disabled="{{it.first}}" onClick="{{it.up}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"></path></svg></button>
+            <button type="button" class="mv" aria-label="{{it.downLabel}}" disabled="{{it.last}}" onClick="{{it.down}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+            <button type="button" class="mv del" aria-label="{{it.delLabel}}" onClick="{{it.del}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+          </sc-if>
+        </div>
+      </sc-for>
+      <sc-if value="{{isLeader}}" hint-placeholder-val="{{ true }}"><button type="button" class="add" onClick="{{openAdd}}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        Agregar canción del cancionero
+      </button></sc-if>
+    </div>
+  </div>
+
+  <nav aria-label="Navegación principal" style="position: absolute; left: 12px; right: 12px; bottom: 16px; height: 72px; border-radius: 26px; background: #FFFFFF; display: flex; align-items: center; padding: 0 6px; box-shadow: 0 14px 30px -20px {{t.ink}}">
+    <a class="tab" href="Home.dc.html">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5L12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5h-4v-6h-5v6h-4A1.5 1.5 0 0 1 4 19z"></path></svg>
+      <span>Inicio</span>
+    </a>
+    <a class="tab" href="Projects.dc.html">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5.5l11-2V16"></path><circle cx="6.5" cy="18" r="2.5"></circle><circle cx="17.5" cy="16" r="2.5"></circle></svg>
+      <span>Cancionero</span>
+    </a>
+    <div style="flex: 1; display: flex; justify-content: center">
+      <sc-if value="{{isLeader}}" hint-placeholder-val="{{ true }}"><button type="button" class="fab" aria-label="Agregar canción" onClick="{{openAdd}}">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+      </button></sc-if><sc-if value="{{stageFab}}" hint-placeholder-val="{{ false }}"><a class="fab" href="Stage.dc.html" aria-label="Abrir modo escenario"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2.5"></rect><path d="M8 21h8M12 17v4"></path></svg></a></sc-if>
+    </div>
+    <a class="tab" href="Shifts.dc.html">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+      <span>Turnos</span>
+    </a>
+    <a class="tab" href="Team.dc.html">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 19.5c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"></path><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18.5 14.4c1.8.8 3 2.6 3 5.1"></path></svg>
+      <span>Equipo</span>
+    </a>
+  </nav>
+
+  <sc-if value="{{addOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="scrim" onClick="{{closeAdd}}" style="position: absolute; inset: 0; background: rgba(30,40,34,.28)"></div>
+    <div class="sheet" role="dialog" aria-label="Agregar canción" style="position: absolute; left: 0; right: 0; bottom: 0; max-height: 640px; background: #FFFFFF; border-radius: 32px 32px 0 0; padding: 14px 20px 30px 20px; display: flex; flex-direction: column; gap: 12px">
+      <span aria-hidden="true" style="align-self: center; width: 44px; height: 5px; border-radius: 3px; background: {{t.line}}"></span>
+      <div style="display: flex; flex-direction: column; gap: 4px; margin: 0 4px">
+        <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 24px; font-weight: 600">Canciones listas</h2>
+        <p style="margin: 0; font-size: 15px; color: {{t.muted}}">Solo aparecen las que el grupo ya tiene en fase Lista.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; min-height: 0">
+        <sc-for list="{{catalog}}" as="c" hint-placeholder-count="5">
+          <button type="button" class="pick" onClick="{{c.add}}">
+            <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0; flex-grow: 1">
+              <span style="font-size: 15px; font-weight: 800">{{c.title}}</span>
+              <span style="font-size: 13px; color: {{t.muted}}">{{c.sub}}</span>
+            </span>
+            <span class="key">{{c.key}}</span>
+          </button>
+        </sc-for>
+        <sc-if value="{{noCatalog}}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; padding: 16px; text-align: center; font-size: 15px; color: {{t.muted}}">Todas las canciones listas ya están en este servicio.</p>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div class="toast" role="status">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+      <span>{{toast}}</span>
+    </div>
+  </sc-if>
+  <sc-if value="{{blocked}}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="position: absolute; inset: 0; z-index: 8; background: {{t.bg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px; text-align: center">
+      <span style="width: 72px; height: 72px; border-radius: 24px; background: {{t.soft}}; color: {{t.primary}}; display: flex; align-items: center; justify-content: center">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9.5" rx="2.5"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      </span>
+      <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px; font-weight: 600; color: {{t.ink}}">Servicios no es para tu rol</h2>
+      <p style="margin: 0; font-size: 16px; line-height: 1.5; color: {{t.muted}}">Como {{rol}}, ves solo lo que te corresponde. Si necesitas acceso, pídeselo a un líder.</p>
+      <a href="Home.dc.html" style="margin-top: 6px; height: 50px; padding: 0 22px; border-radius: 16px; background: {{t.primary}}; color: {{t.bg}}; display: flex; align-items: center; font-size: 15px; font-weight: 800; text-decoration: none">Volver al inicio</a>
+    </div>
+  </sc-if>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"verComo":{"editor":"enum","options":["Líder","Músico","Voz","Sonido","Alumno"],"default":"Líder"},"tema":{"editor":"enum","options":["Salvia","Rosa"],"default":"Salvia"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = {
+      svc: 0, editing: false, addOpen: false, toast: '', toastKey: 0, flip: 0,
+      pub: [true, true, false, false],
+      orders: [
+        [['s', 'e', 'Bienvenida', 'Andrea'], ['s', 'h', 'Alabanza', 'Tú'], ['s', 'b', 'Adoración', 'Andrea'], ['s', 'a', 'Adoración', 'Carla'], ['p', 'Oración pastoral', 'Pastor', 5], ['s', 'd', 'Ofrenda', 'Andrea'], ['p', 'Predicación', 'Pastor', 35]],
+        [['s', 'j', 'Inicio', 'Carla'], ['p', 'Tiempo de oración', 'Todos', 25], ['s', 'g', 'Oración', 'Andrea'], ['s', 'i', 'Cierre', 'Carla']],
+        [['s', 'l', 'Bienvenida', 'Andrea'], ['s', 'c', 'Adoración', 'Andrea'], ['s', 'f', 'Adoración', 'Tú'], ['p', 'Predicación', 'Pastor', 30], ['s', 'k', 'Santa Cena', 'Carla'], ['s', 'd', 'Cierre', 'Andrea']],
+        [['s', 'h', 'Bienvenida', 'Tú'], ['p', 'Predicación', 'Pastor', 35]]
+      ]
+    };
+    this.timers = [];
+  }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); }
+  later(fn, ms) { this.timers.push(setTimeout(fn, ms)); }
+  notify(msg, extra) {
+    const k = this.state.toastKey + 1;
+    this.setState(Object.assign({ toast: msg, toastKey: k }, extra || {}));
+    this.later(() => { if (this.state.toastKey === k) this.setState({ toast: '' }); }, 2400);
+  }
+  setOrder(fn) {
+    const orders = this.state.orders.slice();
+    orders[this.state.svc] = fn(orders[this.state.svc].slice());
+    return orders;
+  }
+  renderVals() {
+    const s = this.state;
+    const themes = {
+      Rosa: { bg: '#FCF3F1', blob1: '#F7D6CF', card: '#F9DFD9', primary: '#A3485A', ink: '#3A2629', muted: '#76595D', line: '#F0DAD5', soft: '#FBEDEA' },
+      Salvia: { bg: '#F2F7EE', blob1: '#D3E8CC', card: '#DCEDD5', primary: '#3D6B4A', ink: '#22322A', muted: '#57695D', line: '#DBE7D4', soft: '#EEF5EA' }
+    };
+    const t = themes[this.props.tema ?? 'Salvia'] || themes.Salvia;
+    const rol = this.props.verComo ?? 'Líder';
+    const isLeader = rol === 'Líder';
+    const stageFab = rol === 'Músico' || rol === 'Voz';
+    const C = {
+      a: { title: 'Sublime gracia', author: 'John Newton', key: 'Sol', min: 4, last: 21 },
+      b: { title: 'Cuán grande es Él', author: 'Carl Boberg', key: 'La', min: 5, last: 14 },
+      c: { title: 'Santo, santo, santo', author: 'Reginald Heber', key: 'Re', min: 4, last: 35 },
+      d: { title: 'Grande es tu fidelidad', author: 'Thomas Chisholm', key: 'Mi', min: 4, last: 7 },
+      e: { title: 'Castillo fuerte', author: 'Martín Lutero', key: 'Do', min: 3, last: 28 },
+      f: { title: 'Alcancé salvación', author: 'Horatio Spafford', key: 'Re', min: 4, last: 42 },
+      g: { title: 'Oh, qué amigo nos es Cristo', author: 'Joseph Scriven', key: 'Fa', min: 4, last: 10 },
+      h: { title: 'Firmes y adelante', author: 'S. Baring-Gould', key: 'Sol', min: 3, last: 49 },
+      i: { title: 'Tal como soy', author: 'Charlotte Elliott', key: 'Mi', min: 4, last: 63 },
+      j: { title: 'Dulce oración', author: 'William Walford', key: 'Re', min: 4, last: 30 },
+      k: { title: 'A solas al huerto', author: 'C. Austin Miles', key: 'La', min: 4, last: 56 },
+      l: { title: 'Gloria a ti, Jesús divino', author: 'Himno tradicional', key: 'Sol', min: 3, last: 70 }
+    };
+    const SV = [
+      { dia: 'Dom', num: '11 oct', kind: 'Servicio dominical', fecha: 'Domingo 11 de octubre', hora: '10:00 a. m.', lead: 'Andrea' },
+      { dia: 'Mié', num: '14 oct', kind: 'Culto de oración', fecha: 'Miércoles 14 de octubre', hora: '7:00 p. m.', lead: 'Carla' },
+      { dia: 'Dom', num: '18 oct', kind: 'Santa Cena', fecha: 'Domingo 18 de octubre', hora: '10:00 a. m.', lead: 'Andrea' },
+      { dia: 'Dom', num: '25 oct', kind: 'Servicio dominical', fecha: 'Domingo 25 de octubre', hora: '10:00 a. m.', lead: 'Tú' }
+    ];
+    const order = s.orders[s.svc];
+    const cur = SV[s.svc];
+    const mins = order.reduce((m, it) => m + (it[0] === 's' ? C[it[1]].min : it[3]), 0);
+    const items = order.map((it, i) => {
+      const isSong = it[0] === 's';
+      const c = isSong ? C[it[1]] : null;
+      const title = isSong ? c.title : it[1];
+      const move = (d) => () => this.setState({ orders: this.setOrder(o => { const x = o[i]; o[i] = o[i + d]; o[i + d] = x; return o; }) });
+      return {
+        n: i + 1, isSong, title,
+        sub: isSong ? it[2] + ' · Dirige ' + it[3] : it[2] + ' · ' + it[3] + ' min',
+        key: isSong ? c.key : '',
+        hasWarn: isSong && c.last <= 14,
+        warn: isSong ? 'Se cantó hace ' + c.last + ' días' : '',
+        cls: 'item ' + (isSong ? '' : 'part ') + (s.flip % 2 ? '' : 'a'),
+        delay: (i * 45) + 'ms',
+        first: i === 0, last: i === order.length - 1,
+        upLabel: 'Subir ' + title, downLabel: 'Bajar ' + title, delLabel: 'Quitar ' + title,
+        up: move(-1), down: move(1),
+        del: () => this.notify('Se quitó ' + title, { orders: this.setOrder(o => o.filter((_, j) => j !== i)) })
+      };
+    });
+    const used = order.filter(it => it[0] === 's').map(it => it[1]);
+    const catalog = Object.keys(C).filter(k => used.indexOf(k) < 0).map(k => ({
+      title: C[k].title, key: C[k].key,
+      sub: C[k].author + ' · cantada hace ' + C[k].last + ' días',
+      add: () => this.notify(C[k].title + ' agregada', { addOpen: false, orders: this.setOrder(o => o.concat([['s', k, 'Adoración', cur.lead]])) })
+    }));
+    const pub = s.pub[s.svc];
+    return {
+      t, rol, isLeader, notLeader: !isLeader, blocked: ["Alumno"].indexOf(rol) >= 0, stageFab, cur, mins, items, catalog,
+      noCatalog: catalog.length === 0,
+      services: SV.map((x, i) => ({ dia: x.dia, num: x.num, on: i === s.svc, cls: 'schip' + (i === s.svc ? ' on' : ''), pick: () => this.setState({ svc: i, flip: s.flip + 1, editing: false }) })),
+      editing: s.editing, notEditing: !s.editing,
+      editCls: 'iconbtn' + (s.editing ? ' on' : ''),
+      toggleEdit: () => s.editing ? this.notify('Orden guardado', { editing: false }) : this.setState({ editing: true }),
+      pub,
+      pubText: pub ? 'Visible en la página pública' : 'Oculto del público',
+      swCls: 'sw' + (pub ? ' on' : ''),
+      togglePub: () => { const p = s.pub.slice(); p[s.svc] = !pub; this.notify(pub ? 'Servicio oculto del público' : 'Publicado para la congregación', { pub: p }); },
+      addOpen: s.addOpen,
+      openAdd: () => this.setState({ addOpen: true }),
+      closeAdd: () => this.setState({ addOpen: false }),
+      hasToast: !!s.toast,
+      toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

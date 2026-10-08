@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cancionero</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500..600,100&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.app button{font:inherit;color:inherit}
+
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.rise{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes morph{0%,100%{border-radius:58% 42% 55% 45%/48% 60% 40% 52%;transform:translate(0,0) rotate(0)}50%{border-radius:42% 58% 40% 60%/58% 44% 56% 42%;transform:translate(-12px,10px) rotate(10deg)}}
+.blob{position:absolute;animation:morph 16s ease-in-out infinite}
+
+.iconbtn{width:44px;height:44px;border:0;border-radius:16px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;color:var(--ink);box-shadow:0 8px 20px -14px var(--ink);text-decoration:none;flex-shrink:0;cursor:pointer}
+.iconbtn.prim{background:var(--primary);color:#FFFFFF;box-shadow:0 10px 20px -12px var(--primary)}
+
+.chips{flex-shrink:0;display:flex;gap:8px;overflow-x:auto;padding:2px 20px 6px 20px;margin:0 -20px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.fchip{flex-shrink:0;height:40px;padding:0 14px;border:1.5px solid var(--line);border-radius:14px;background:#FFFFFF;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s,border-color .2s,color .2s}
+.fchip:hover{border-color:var(--primary)}
+.fchip.on{background:var(--primary);border-color:var(--primary);color:#FFFFFF}
+.fchip .n{min-width:20px;height:20px;padding:0 6px;border-radius:7px;background:var(--soft);color:var(--muted);font-size:12px;display:flex;align-items:center;justify-content:center}
+.fchip.on .n{background:rgba(255,255,255,.22);color:#FFFFFF}
+
+.pipe{display:flex;height:10px;border-radius:6px;overflow:hidden;gap:3px}
+@keyframes growX{from{transform:scaleX(0)}}
+.pipe span{height:100%;border-radius:3px;transform-origin:left;animation:growX .9s cubic-bezier(.3,0,.2,1) both;transition:flex-grow .5s cubic-bezier(.3,0,.2,1)}
+
+.song{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:22px;background:#FFFFFF;border:1.5px solid var(--line);transition:border-color .25s,box-shadow .3s;animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+.song.open{border-color:var(--primary);box-shadow:0 0 0 4px var(--ring)}
+.songhead{display:flex;align-items:center;gap:12px;border:0;background:none;padding:0;text-align:left;cursor:pointer;width:100%;min-height:44px}
+.ppill{flex-shrink:0;padding:5px 10px;border-radius:10px;font-size:12px;font-weight:800}
+.segs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.segs i{height:6px;border-radius:3px;background:var(--line);transition:background .4s}
+.segs i.f{background:var(--primary)}
+.av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:2px solid #FFFFFF;margin-left:-8px}
+.av:first-child{margin-left:0}
+
+@keyframes drop{from{opacity:0;transform:translateY(-6px)}}
+.detail{display:flex;flex-direction:column;gap:10px;padding-top:12px;border-top:1.5px dashed var(--line);animation:drop .3s ease both}
+.check{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border:0;border-radius:14px;background:var(--soft);cursor:pointer;text-align:left;font-size:15px;font-weight:700}
+.box{width:22px;height:22px;border-radius:8px;border:2px solid var(--line);background:#FFFFFF;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border-color .2s}
+.check.on .box{background:var(--primary);border-color:var(--primary);color:#FFFFFF}
+.check.on .lbl{text-decoration:line-through;color:var(--muted)}
+
+.sw{position:relative;width:52px;height:32px;border:0;border-radius:16px;background:var(--line);cursor:pointer;flex-shrink:0;transition:background .3s}
+.sw::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#FFFFFF;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .35s cubic-bezier(.3,1.3,.5,1)}
+.sw.on{background:var(--primary)}
+.sw.on::after{transform:translateX(20px)}
+
+.adv{height:52px;border:0;border-radius:18px;background:var(--primary);color:#FFFFFF;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .2s,opacity .2s}
+.adv:active{transform:scale(.98)}
+.adv:disabled{opacity:.5;cursor:default}
+.know{height:52px;border:1.5px solid var(--line);border-radius:18px;background:#FFFFFF;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .25s,color .25s,border-color .25s}
+.know.on{background:var(--primary);border-color:var(--primary);color:#FFFFFF}
+
+.tab{flex:1;height:60px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;border-radius:16px;text-decoration:none}
+.tab.on{color:var(--primary)}
+.fab{text-decoration:none;width:60px;height:60px;margin-top:-26px;border:0;border-radius:22px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 12px 24px -10px var(--primary);transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+.fab:hover{transform:rotate(90deg)}
+
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,-12px)}12%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-12px)}}
+.toast{position:absolute;left:50%;top:54px;padding:12px 18px;border-radius:16px;background:var(--ink);color:#fff;font-size:14px;font-weight:700;white-space:nowrap;animation:toastIn 2.4s ease both;display:flex;align-items:center;gap:8px;z-index:5}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition:none !important}}
+</style>
+</helmet>
+<main class="app" style="--primary: {{t.primary}}; --ink: {{t.ink}}; --muted: {{t.muted}}; --line: {{t.line}}; --ring: {{t.ring}}; --soft: {{t.soft}}; position: relative; width: 390px; height: 844px; background: {{t.bg}}; font-family: Nunito, system-ui, sans-serif; color: {{t.ink}}; overflow: hidden">
+
+  <div aria-hidden="true" class="blob" style="width: 260px; height: 240px; right: -120px; top: -100px; background: {{t.blob1}}"></div>
+
+  <div style="position: relative; height: 100%; display: flex; flex-direction: column; padding: 54px 20px 0 20px">
+
+    <header class="rise" style="animation-delay: 0ms; flex-shrink: 0; display: flex; align-items: center; gap: 14px">
+      <a href="Home.dc.html" class="iconbtn" aria-label="Volver al inicio">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+        <h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1">Cancionero</h1>
+        <span style="font-size: 15px; color: {{t.muted}}">{{resumen}}</span>
+      </div>
+      <sc-if value="{{isLeader}}" hint-placeholder-val="{{ true }}"><button type="button" class="iconbtn prim" aria-label="Agregar canción" onClick="{{addSong}}">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+      </button></sc-if>
+    </header>
+
+    <div class="rise" style="animation-delay: 90ms; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; margin-top: 20px; padding: 14px; border-radius: 20px; background: #FFFFFF; border: 1.5px solid {{t.line}}">
+      <span style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; color: {{t.muted}}"><span>De nueva a lista para servicio</span><span>{{lanzadas}} listas</span></span>
+      <div class="pipe" role="img" aria-label="{{pipeLabel}}">
+        <sc-for list="{{pipe}}" as="p" hint-placeholder-count="7">
+          <span style="flex-grow: {{p.n}}; background: {{p.bg}}; animation-delay: {{p.delay}}"></span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div class="rise chips" role="tablist" aria-label="Filtrar por fase" style="animation-delay: 150ms; margin-top: 14px">
+      <sc-for list="{{filters}}" as="f" hint-placeholder-count="8">
+        <button type="button" role="tab" aria-selected="{{f.on}}" class="{{f.cls}}" onClick="{{f.pick}}">
+          <span>{{f.label}}</span><span class="n">{{f.n}}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="flex: 1 1 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 8px 0 110px 0; margin: 0 -20px; padding-left: 20px; padding-right: 20px">
+      <sc-for list="{{list}}" as="s" hint-placeholder-count="4">
+        <div class="{{s.cls}}" style="animation-delay: {{s.delay}}">
+          <button type="button" class="songhead" aria-expanded="{{s.open}}" onClick="{{s.toggle}}">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex-grow: 1">
+              <span style="font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.title}}</span>
+              <span style="font-size: 13px; color: {{t.muted}}">{{s.meta}}</span>
+            </span>
+            <span class="ppill" style="background: {{s.pBg}}; color: {{s.pFg}}">{{s.phase}}</span>
+          </button>
+          <div class="segs" aria-hidden="true">
+            <sc-for list="{{s.segs}}" as="g" hint-placeholder-count="4"><i class="{{g}}"></i></sc-for>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <div style="display: flex">
+              <sc-for list="{{s.who}}" as="w" hint-placeholder-count="2">
+                <span class="av" style="background: {{w.bg}}; color: {{w.fg}}">{{w.ini}}</span>
+              </sc-for>
+            </div>
+            <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: {{t.muted}}">
+              <sc-if value="{{s.public}}" hint-placeholder-val="{{ false }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path></svg><span>En repertorio ·</span>
+              </sc-if>
+              <span>{{s.when}}</span>
+            </span>
+          </div>
+
+          <sc-if value="{{s.open}}" hint-placeholder-val="{{ false }}">
+            <div class="detail">
+              <sc-if value="{{isLeader}}" hint-placeholder-val="{{ true }}"><span style="font-size: 13px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: {{t.muted}}">Pendientes de {{s.phase}}</span>
+              <sc-for list="{{s.checks}}" as="c" hint-placeholder-count="3">
+                <button type="button" role="checkbox" aria-checked="{{c.on}}" class="{{c.cls}}" onClick="{{c.toggle}}">
+                  <span class="box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+                  <span class="lbl">{{c.label}}</span>
+                </button>
+              </sc-for></sc-if>
+              <sc-if value="{{isLeader}}" hint-placeholder-val="{{ true }}"><div style="display: flex; align-items: center; gap: 12px; padding: 4px 4px 4px 4px">
+                <span style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1">
+                  <span style="font-size: 15px; font-weight: 800">Mostrar en repertorio público</span>
+                  <span style="font-size: 13px; color: {{t.muted}}">Solo título y datos básicos</span>
+                </span>
+                <button type="button" role="switch" aria-checked="{{s.public}}" aria-label="Mostrar en repertorio público" class="{{s.swCls}}" onClick="{{s.togglePub}}"></button>
+              </div></sc-if>
+              <sc-if value="{{notLeader}}" hint-placeholder-val="{{ false }}">
+              <div class="focus" style="display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 14px; background: {{t.soft}}">
+                <span style="font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: {{t.muted}}">Tu parte</span>
+                <span style="font-size: 15px; font-weight: 700">{{parte}}</span>
+              </div>
+              <button type="button" class="{{s.knowCls}}" aria-pressed="{{s.know}}" onClick="{{s.toggleKnow}}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+                <span>{{s.knowLabel}}</span>
+              </button>
+              </sc-if>
+              <sc-if value="{{isLeader}}" hint-placeholder-val="{{ true }}"><button type="button" class="adv" disabled="{{s.last}}" onClick="{{s.advance}}">
+                <span>{{s.advLabel}}</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+              </button></sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+      <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 40px 20px; text-align: center; color: {{t.muted}}; font-size: 15px; font-weight: 700">No hay canciones en esta fase.</div>
+      </sc-if>
+    </div>
+  </div>
+
+  <nav aria-label="Navegación principal" style="position: absolute; left: 12px; right: 12px; bottom: 16px; height: 72px; border-radius: 26px; background: #FFFFFF; display: flex; align-items: center; padding: 0 6px; box-shadow: 0 14px 30px -20px {{t.ink}}">
+    <a class="tab" href="Home.dc.html">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5L12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5h-4v-6h-5v6h-4A1.5 1.5 0 0 1 4 19z"></path></svg>
+      <span>Inicio</span>
+    </a>
+    <button type="button" class="tab on" aria-current="page">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5.5l11-2V16"></path><circle cx="6.5" cy="18" r="2.5"></circle><circle cx="17.5" cy="16" r="2.5"></circle></svg>
+      <span>Cancionero</span>
+    </button>
+    <div style="flex: 1; display: flex; justify-content: center">
+      <sc-if value="{{isLeader}}" hint-placeholder-val="{{ true }}"><button type="button" class="fab" aria-label="Agregar canción" onClick="{{addSong}}">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+      </button></sc-if><sc-if value="{{stageFab}}" hint-placeholder-val="{{ false }}"><a class="fab" href="Stage.dc.html" aria-label="Abrir modo escenario"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2.5"></rect><path d="M8 21h8M12 17v4"></path></svg></a></sc-if>
+    </div>
+    <button type="button" class="tab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+      <span>Agenda</span>
+    </button>
+    <a class="tab" href="Team.dc.html">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 19.5c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"></path><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18.5 14.4c1.8.8 3 2.6 3 5.1"></path></svg>
+      <span>Equipo</span>
+    </a>
+  </nav>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div class="toast" role="status">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+      <span>{{toast}}</span>
+    </div>
+  </sc-if>
+  <sc-if value="{{blocked}}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="position: absolute; inset: 0; z-index: 8; background: {{t.bg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px; text-align: center">
+      <span style="width: 72px; height: 72px; border-radius: 24px; background: {{t.soft}}; color: {{t.primary}}; display: flex; align-items: center; justify-content: center">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9.5" rx="2.5"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      </span>
+      <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px; font-weight: 600; color: {{t.ink}}">El cancionero no es para tu rol</h2>
+      <p style="margin: 0; font-size: 16px; line-height: 1.5; color: {{t.muted}}">Como {{rol}}, ves solo lo que te corresponde. Si necesitas acceso, pídeselo a un líder.</p>
+      <a href="Home.dc.html" style="margin-top: 6px; height: 50px; padding: 0 22px; border-radius: 16px; background: {{t.primary}}; color: {{t.bg}}; display: flex; align-items: center; font-size: 15px; font-weight: 800; text-decoration: none">Volver al inicio</a>
+    </div>
+  </sc-if>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"verComo":{"editor":"enum","options":["Líder","Músico","Voz","Sonido","Alumno"],"default":"Líder"},"tema":{"editor":"enum","options":["Salvia","Rosa"],"default":"Salvia"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = {
+      filter: -1, open: 2, know: [], toast: '', toastKey: 0, nextId: 100,
+      songs: [
+        { id: 1, title: 'Cuán grande es Él', meta: 'Carl Boberg · La · 72 BPM', phase: 3, done: [], pub: true, who: ['TÚ', 'AR'], when: 'Cantada hace 2 semanas' },
+        { id: 2, title: 'Grande es tu fidelidad', meta: 'Thomas Chisholm · Mi · 76 BPM', phase: 2, done: [0], pub: true, who: ['TÚ', 'AR', 'LP'], when: 'Ensayada el jueves' },
+        { id: 3, title: 'Santo, santo, santo', meta: 'Reginald Heber · Re · 84 BPM', phase: 1, done: [0, 1], pub: false, who: ['LP', 'AR'], when: 'Asignada ayer' },
+        { id: 4, title: 'Alcancé salvación', meta: 'Horatio Spafford · Re · 70 BPM', phase: 1, done: [], pub: false, who: ['TÚ'], when: 'Hace 4 días' },
+        { id: 5, title: 'Castillo fuerte', meta: 'Martín Lutero · Do · 96 BPM', phase: 3, done: [], pub: true, who: ['AR', 'LP'], when: 'Cantada el domingo' },
+        { id: 6, title: 'Dulce oración', meta: 'William Walford · Re · 68 BPM', phase: 0, done: [], pub: false, who: ['TÚ'], when: 'Propuesta por la congregación' },
+        { id: 7, title: 'Firmes y adelante', meta: 'S. Baring-Gould · Sol · 110 BPM', phase: 2, done: [], pub: true, who: ['TÚ', 'LP'], when: 'Ensayada el jueves' }
+      ]
+    };
+    this.timers = [];
+  }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); }
+  later(fn, ms) { this.timers.push(setTimeout(fn, ms)); }
+  notify(msg, extra) {
+    const k = this.state.toastKey + 1;
+    this.setState(Object.assign({ toast: msg, toastKey: k }, extra || {}));
+    this.later(() => { if (this.state.toastKey === k) this.setState({ toast: '' }); }, 2400);
+  }
+  update(id, fn) { return this.state.songs.map(x => x.id === id ? Object.assign({}, x, fn(x)) : x); }
+  renderVals() {
+    const s = this.state;
+    const themes = {
+      Rosa: { bg: '#FCF3F1', blob1: '#F7D6CF', primary: '#A3485A', ink: '#3A2629', muted: '#76595D', line: '#F0DAD5', ring: 'rgba(163,72,90,.14)', soft: '#FBEDEA' },
+      Salvia: { bg: '#F2F7EE', blob1: '#D3E8CC', primary: '#3D6B4A', ink: '#22322A', muted: '#57695D', line: '#DBE7D4', ring: 'rgba(61,107,74,.14)', soft: '#EEF5EA' }
+    };
+    const t = themes[this.props.tema ?? 'Salvia'] || themes.Salvia;
+    const rol = this.props.verComo ?? 'Líder';
+    const isLeader = rol === 'Líder';
+    const stageFab = rol === 'Músico' || rol === 'Voz';
+    const parte = { 'Músico': 'Guitarra · acordes, rasgueo y entradas', 'Voz': 'Voz 2 · armonía en los coros' }[rol] || '';
+    const P = [
+      { name: 'Nueva', bg: '#FBE6CC', fg: '#7A4E14', todo: ['Letra y acordes cargados', 'Tono elegido para quien dirige', 'Audio de referencia'] },
+      { name: 'Aprendiendo', bg: '#E6DDF5', fg: '#533E87', todo: ['Cada músico sabe su parte', 'Voces repartidas', 'Estructura definida'] },
+      { name: 'Ensayada', bg: '#DCE8F7', fg: '#2A527E', todo: ['Ensayada con todo el grupo', 'Transiciones claras', 'Visto bueno del líder'] },
+      { name: 'Lista', bg: t.primary, fg: '#FFFFFF', todo: ['Disponible para servicios'] }
+    ];
+    const L = P.length - 1;
+    const people = { 'TÚ': [t.primary, '#FFFFFF'], AR: ['#E6DDF5', '#533E87'], LP: ['#DCE8F7', '#2A527E'] };
+    const counts = P.map((_, i) => s.songs.filter(x => x.phase === i).length);
+    const filters = [{ label: 'Todas', n: s.songs.length, i: -1 }].concat(P.map((p, i) => ({ label: p.name, n: counts[i], i })))
+      .map(f => ({ label: f.label, n: f.n, on: s.filter === f.i, cls: 'fchip' + (s.filter === f.i ? ' on' : ''), pick: () => this.setState({ filter: f.i }) }));
+    const shown = s.songs.filter(x => s.filter < 0 || x.phase === s.filter).slice().sort((a, b) => a.phase - b.phase);
+    const list = shown.map((x, idx) => {
+      const p = P[x.phase];
+      const open = s.open === x.id;
+      const last = x.phase === L;
+      return {
+        title: x.title, meta: x.meta, phase: p.name, pBg: p.bg, pFg: p.fg, when: x.when,
+        public: x.pub, open, last,
+        delay: (idx * 50) + 'ms',
+        cls: 'song' + (open ? ' open' : ''),
+        segs: P.map((_, i) => i <= x.phase ? 'f' : ''),
+        who: x.who.map(w => ({ ini: w, bg: people[w][0], fg: people[w][1] })),
+        toggle: () => this.setState({ open: open ? null : x.id }),
+        checks: p.todo.map((label, i) => {
+          const on = x.done.indexOf(i) >= 0;
+          return { label, on, cls: 'check' + (on ? ' on' : ''), toggle: () => this.setState({ songs: this.update(x.id, y => ({ done: on ? y.done.filter(d => d !== i) : y.done.concat([i]) })) }) };
+        }),
+        know: s.know.indexOf(x.id) >= 0,
+        knowCls: 'know' + (s.know.indexOf(x.id) >= 0 ? ' on' : ''),
+        knowLabel: s.know.indexOf(x.id) >= 0 ? 'Ya me la sé' : 'Marcar que ya me la sé',
+        toggleKnow: () => { const k = s.know.indexOf(x.id) >= 0; this.notify(k ? 'Marcada como pendiente' : 'El líder verá que ya te la sabes', { know: k ? s.know.filter(i => i !== x.id) : s.know.concat([x.id]) }); },
+        swCls: 'sw' + (x.pub ? ' on' : ''),
+        togglePub: () => this.notify(x.pub ? 'Oculta del repertorio público' : 'Visible en el repertorio público', { songs: this.update(x.id, y => ({ pub: !y.pub })) }),
+        advLabel: last ? 'Lista para servicios' : 'Pasar a ' + P[x.phase + 1].name,
+        advance: () => {
+          if (last) return;
+          const np = x.phase + 1;
+          this.notify(x.title + ' pasó a ' + P[np].name, {
+            songs: this.update(x.id, () => ({ phase: np, done: [], when: 'Hoy', pub: np === L ? true : x.pub })),
+            filter: s.filter >= 0 ? np : s.filter
+          });
+        }
+      };
+    });
+    return {
+      t, rol, isLeader, notLeader: !isLeader, blocked: ["Sonido", "Alumno"].indexOf(rol) >= 0, stageFab, parte, filters, list,
+      empty: list.length === 0,
+      resumen: s.songs.length + ' canciones · ' + (s.songs.length - counts[L]) + ' por preparar',
+      lanzadas: counts[L],
+      pipe: P.map((p, i) => ({ n: counts[i], bg: p.bg === t.primary ? t.primary : p.fg, delay: (200 + i * 60) + 'ms' })).filter(p => p.n > 0),
+      pipeLabel: P.map((p, i) => p.name + ': ' + counts[i]).join(', '),
+      addSong: () => {
+        const id = s.nextId;
+        this.notify('Canción agregada como Nueva', {
+          nextId: id + 1, open: id, filter: -1,
+          songs: [{ id, title: 'Canción nueva', meta: 'Autor · Tono por definir', phase: 0, done: [], pub: false, who: ['TÚ'], when: 'Ahora' }].concat(s.songs)
+        });
+      },
+      hasToast: !!s.toast,
+      toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

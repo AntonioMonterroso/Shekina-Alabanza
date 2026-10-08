@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Equipo y roles</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500..600,100&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.app button{font:inherit;color:inherit}
+
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.rise{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes morph{0%,100%{border-radius:58% 42% 55% 45%/48% 60% 40% 52%;transform:translate(0,0) rotate(0)}50%{border-radius:42% 58% 40% 60%/58% 44% 56% 42%;transform:translate(-12px,10px) rotate(10deg)}}
+.blob{position:absolute;animation:morph 16s ease-in-out infinite}
+
+.back{width:44px;height:44px;border-radius:16px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;color:var(--ink);box-shadow:0 8px 20px -14px var(--ink);text-decoration:none;flex-shrink:0}
+
+.role{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:20px;background:#FFFFFF;border:1.5px solid var(--line)}
+.badge{align-self:flex-start;padding:4px 10px;border-radius:10px;font-size:12px;font-weight:800}
+
+.member{display:flex;flex-direction:column;gap:12px;padding:12px;border-radius:22px;background:#FFFFFF;border:1.5px solid var(--line);transition:border-color .25s,box-shadow .3s}
+.member.open{border-color:var(--primary);box-shadow:0 0 0 4px var(--ring)}
+.av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.rolebtn{min-height:44px;padding:0 6px 0 12px;border:0;border-radius:14px;display:flex;align-items:center;gap:4px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0}
+.rolebtn:disabled{cursor:default;padding-right:12px}
+@keyframes drop{from{opacity:0;transform:translateY(-6px)}}
+.picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;animation:drop .3s ease both}
+.rchip{height:44px;border:1.5px solid var(--line);border-radius:14px;background:#FFFFFF;font-size:14px;font-weight:800;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.rchip:hover{border-color:var(--primary)}
+.rchip.on{background:var(--primary);border-color:var(--primary);color:#FFFFFF}
+
+.invite{width:100%;height:58px;border:0;border-radius:20px;background:var(--primary);color:#fff;font-size:17px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 24px -12px var(--primary);transition:transform .2s}
+.invite:active{transform:scale(.98)}
+
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(100%)}}
+.scrim{animation:fade .3s ease both}
+.sheet{animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+.cap{width:100%;height:58px;border:1.5px solid var(--line);border-radius:20px;background:var(--soft);font:inherit;font-size:17px;color:var(--ink);padding:0 18px;outline:none;transition:border-color .25s,box-shadow .3s}
+.cap:focus{border-color:var(--primary);box-shadow:0 0 0 5px var(--ring);background:#fff}
+
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,-12px)}12%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-12px)}}
+.toast{position:absolute;left:50%;top:54px;padding:12px 18px;border-radius:16px;background:var(--ink);color:#fff;font-size:14px;font-weight:700;white-space:nowrap;animation:toastIn 2.4s ease both;display:flex;align-items:center;gap:8px}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition:none !important}}
+</style>
+</helmet>
+<main class="app" style="--primary: {{t.primary}}; --ink: {{t.ink}}; --muted: {{t.muted}}; --line: {{t.line}}; --ring: {{t.ring}}; --soft: {{t.soft}}; position: relative; width: 390px; height: 844px; background: {{t.bg}}; font-family: Nunito, system-ui, sans-serif; color: {{t.ink}}; overflow: hidden">
+
+  <div aria-hidden="true" class="blob" style="width: 260px; height: 240px; right: -120px; top: -100px; background: {{t.blob1}}"></div>
+
+  <div style="position: relative; height: 100%; display: flex; flex-direction: column; padding: 54px 20px 30px 20px">
+
+    <header class="rise" style="animation-delay: 0ms; display: flex; align-items: center; gap: 14px">
+      <a href="Home.dc.html" class="back" aria-label="Volver al inicio">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1">Equipo</h1>
+        <span style="font-size: 15px; color: {{t.muted}}">{{subtitulo}}</span>
+      </div>
+    </header>
+
+    <div class="rise" style="animation-delay: 100ms; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 20px">
+      <div class="role">
+        <span class="badge" style="background: #E6DDF5; color: #533E87">Líder</span>
+        <span style="font-size: 13px; line-height: 1.3; color: {{t.muted}}">Arma servicios, turnos y lo público.</span>
+      </div>
+      <div class="role">
+        <span class="badge" style="background: #DCE8F7; color: #2A527E">Músico</span>
+        <span style="font-size: 13px; line-height: 1.3; color: {{t.muted}}">Cancionero, ensayos y sus turnos.</span>
+      </div>
+      <div class="role">
+        <span class="badge" style="background: #F7D6CF; color: #93394B">Voz</span>
+        <span style="font-size: 13px; line-height: 1.3; color: {{t.muted}}">Letras, tonos y sus turnos.</span>
+      </div>
+      <div class="role">
+        <span class="badge" style="background: #D5ECE7; color: #285F57">Sonido</span>
+        <span style="font-size: 13px; line-height: 1.3; color: {{t.muted}}">Ve el orden del servicio.</span>
+      </div>
+      <div class="role">
+        <span class="badge" style="background: #FBE6CC; color: #7A4E14">Alumno</span>
+        <span style="font-size: 13px; line-height: 1.3; color: {{t.muted}}">Solo su formación en Escuela.</span>
+      </div>
+      <div class="role" style="background: transparent; border-style: dashed">
+        <span class="badge" style="background: {{t.card}}; color: {{t.primary}}">Congregación</span>
+        <span style="font-size: 13px; line-height: 1.3; color: {{t.muted}}">Sin cuenta. Solo la página pública.</span>
+      </div>
+    </div>
+
+    <div class="rise" style="animation-delay: 180ms; display: flex; justify-content: space-between; align-items: baseline; margin: 22px 4px 10px 4px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Integrantes</h2>
+      <span style="font-size: 13px; font-weight: 700; color: {{t.muted}}">{{resumen}}</span>
+    </div>
+
+    <div class="rise" style="animation-delay: 240ms; flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px">
+      <sc-for list="{{members}}" as="m" hint-placeholder-count="4">
+        <div class="{{m.cls}}">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <span class="av" style="background: {{m.avBg}}; color: {{m.avFg}}">{{m.ini}}</span>
+            <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0; flex-grow: 1">
+              <span style="font-size: 16px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{m.name}}</span>
+              <span style="font-size: 13px; color: {{t.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{m.sub}}</span>
+            </span>
+            <button type="button" class="rolebtn" style="background: {{m.rBg}}; color: {{m.rFg}}" disabled="{{m.locked}}" aria-expanded="{{m.open}}" aria-label="{{m.aria}}" onClick="{{m.toggle}}">
+              <span>{{m.role}}</span>
+              <sc-if value="{{m.editable}}" hint-placeholder-val="{{ true }}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+              </sc-if>
+            </button>
+          </div>
+          <sc-if value="{{m.open}}" hint-placeholder-val="{{ false }}">
+            <div class="picks" role="radiogroup" aria-label="Rol">
+              <sc-for list="{{m.picks}}" as="p" hint-placeholder-count="3">
+                <button type="button" role="radio" aria-checked="{{p.on}}" class="{{p.cls}}" onClick="{{p.pick}}">{{p.label}}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{isLeader}}" hint-placeholder-val="{{ true }}"><button type="button" class="rise invite" style="animation-delay: 320ms" onClick="{{openSheet}}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 19.5c0-3.3 2.9-5.5 6.5-5.5 1.7 0 3.2.5 4.4 1.3"></path><path d="M18 13v7M14.5 16.5h7"></path></svg>
+      <span>Invitar integrante</span>
+    </button></sc-if>
+  </div>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="scrim" onClick="{{closeSheet}}" style="position: absolute; inset: 0; background: rgba(30,40,34,.28)"></div>
+    <form class="sheet" onSubmit="{{send}}" style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-radius: 32px 32px 0 0; padding: 14px 22px 30px 22px; display: flex; flex-direction: column; gap: 16px">
+      <span aria-hidden="true" style="align-self: center; width: 44px; height: 5px; border-radius: 3px; background: {{t.line}}"></span>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 24px; font-weight: 600">Invitar integrante</h2>
+        <p style="margin: 0; font-size: 15px; color: {{t.muted}}">Le llegará un correo para unirse.</p>
+      </div>
+      <label for="inv" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Correo del integrante</label>
+      <input id="inv" class="cap" type="email" placeholder="correo@ejemplo.com" autocomplete="off" value="{{draft}}" onChange="{{onDraft}}">
+      <div class="picks" role="radiogroup" aria-label="Rol del invitado">
+        <sc-for list="{{invPicks}}" as="p" hint-placeholder-count="3">
+          <button type="button" role="radio" aria-checked="{{p.on}}" class="{{p.cls}}" onClick="{{p.pick}}">{{p.label}}</button>
+        </sc-for>
+      </div>
+      <span role="status" style="min-height: 18px; font-size: 14px; font-weight: 700; color: #B3261E">{{err}}</span>
+      <button type="submit" class="invite" style="box-shadow: none">Enviar invitación</button>
+    </form>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div class="toast" role="status">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+      <span>{{toast}}</span>
+    </div>
+  </sc-if>
+  <sc-if value="{{blocked}}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="position: absolute; inset: 0; z-index: 8; background: {{t.bg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px; text-align: center">
+      <span style="width: 72px; height: 72px; border-radius: 24px; background: {{t.soft}}; color: {{t.primary}}; display: flex; align-items: center; justify-content: center">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9.5" rx="2.5"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      </span>
+      <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px; font-weight: 600; color: {{t.ink}}">Equipo no es para tu rol</h2>
+      <p style="margin: 0; font-size: 16px; line-height: 1.5; color: {{t.muted}}">Como {{rol}}, ves solo lo que te corresponde. Si necesitas acceso, pídeselo a un líder.</p>
+      <a href="Home.dc.html" style="margin-top: 6px; height: 50px; padding: 0 22px; border-radius: 16px; background: {{t.primary}}; color: {{t.bg}}; display: flex; align-items: center; font-size: 15px; font-weight: 800; text-decoration: none">Volver al inicio</a>
+    </div>
+  </sc-if>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"verComo":{"editor":"enum","options":["Líder","Músico","Voz","Sonido","Alumno"],"default":"Líder"},"tema":{"editor":"enum","options":["Salvia","Rosa"],"default":"Salvia"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = {
+      open: null, sheetOpen: false, draft: '', invRole: 'Músico', err: '', toast: '', toastKey: 0,
+      members: [
+        { id: 1, name: 'Tú', sub: 'Propietario de la cuenta', role: 'Propietario', owner: true },
+        { id: 2, name: 'Andrea Ruiz', sub: 'Dirige alabanza · teclado', role: 'Líder' },
+        { id: 3, name: 'Luis Pérez', sub: 'Batería', role: 'Músico' },
+        { id: 5, name: 'Carla Gómez', sub: 'Voz 1', role: 'Voz' },
+        { id: 6, name: 'Marcos Díaz', sub: 'Consola y proyección', role: 'Sonido' },
+        { id: 4, name: 'Sofía Morales', sub: 'Aprende guitarra', role: 'Alumno' }
+      ]
+    };
+    this.timers = [];
+  }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); }
+  later(fn, ms) { this.timers.push(setTimeout(fn, ms)); }
+  notify(msg, extra) {
+    const k = this.state.toastKey + 1;
+    this.setState(Object.assign({ toast: msg, toastKey: k }, extra || {}));
+    this.later(() => { if (this.state.toastKey === k) this.setState({ toast: '' }); }, 2400);
+  }
+  renderVals() {
+    const s = this.state;
+    const themes = {
+      Rosa: { bg: '#FCF3F1', blob1: '#F7D6CF', card: '#F9DFD9', primary: '#A3485A', ink: '#3A2629', muted: '#76595D', line: '#F0DAD5', ring: 'rgba(163,72,90,.14)', soft: '#FDF6F4' },
+      Salvia: { bg: '#F2F7EE', blob1: '#D3E8CC', card: '#DCEDD5', primary: '#3D6B4A', ink: '#22322A', muted: '#57695D', line: '#DBE7D4', ring: 'rgba(61,107,74,.14)', soft: '#F5FAF2' }
+    };
+    const t = themes[this.props.tema ?? 'Salvia'] || themes.Salvia;
+    const rol = this.props.verComo ?? 'Líder';
+    const isLeader = rol === 'Líder';
+    const roles = ['Líder', 'Músico', 'Voz', 'Sonido', 'Alumno'];
+    const colors = {
+      Propietario: [t.primary, '#FFFFFF'],
+      'Líder': ['#E6DDF5', '#533E87'],
+      'Músico': ['#DCE8F7', '#2A527E'],
+      Voz: ['#F7D6CF', '#93394B'],
+      Sonido: ['#D5ECE7', '#285F57'],
+      Alumno: ['#FBE6CC', '#7A4E14']
+    };
+    const initials = (n) => n === 'Tú' ? 'TÚ' : n.split(/[\s._@-]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    const setRole = (id, role) => {
+      const m = s.members.find(x => x.id === id);
+      this.notify(m.name + ' ahora es ' + role, { open: null, members: s.members.map(x => x.id === id ? Object.assign({}, x, { role }) : x) });
+    };
+    const list = isLeader ? s.members : s.members.map(m => m.owner ? Object.assign({}, m, { owner: false, role: rol, sub: 'Tu rol en el grupo' }) : m);
+    const members = list.map(m => {
+      const open = s.open === m.id;
+      const c = colors[m.role];
+      return {
+        name: m.name, sub: m.sub, role: m.role, ini: initials(m.name),
+        avBg: m.owner ? t.primary : c[0], avFg: m.owner ? '#FFFFFF' : c[1],
+        rBg: c[0], rFg: c[1],
+        owner: !!m.owner, editable: isLeader && !m.owner, locked: !isLeader || !!m.owner, open,
+        aria: !isLeader || m.owner ? m.name + ': ' + m.role : 'Cambiar rol de ' + m.name + ', actual: ' + m.role,
+        cls: 'member' + (open ? ' open' : ''),
+        toggle: () => { if (isLeader && !m.owner) this.setState({ open: open ? null : m.id }); },
+        picks: roles.map(r => ({ label: r, on: r === m.role, cls: 'rchip' + (r === m.role ? ' on' : ''), pick: () => setRole(m.id, r) }))
+      };
+    });
+    const admins = s.members.filter(m => m.role === 'Líder' || m.owner).length;
+    return {
+      t, rol, isLeader, notLeader: !isLeader, blocked: ["Alumno"].indexOf(rol) >= 0, subtitulo: isLeader ? "Tú decides quién es líder." : "Quiénes forman el grupo.", members,
+      resumen: s.members.length + ' personas · ' + admins + ' líderes',
+      sheetOpen: s.sheetOpen,
+      openSheet: () => this.setState({ sheetOpen: true, open: null, err: '' }),
+      closeSheet: () => this.setState({ sheetOpen: false, draft: '', err: '' }),
+      draft: s.draft,
+      err: s.err,
+      onDraft: (e) => this.setState({ draft: e.target.value, err: '' }),
+      invPicks: roles.map(r => ({ label: r, on: r === s.invRole, cls: 'rchip' + (r === s.invRole ? ' on' : ''), pick: () => this.setState({ invRole: r }) })),
+      send: (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        const mail = s.draft.trim();
+        if (!/^\S+@\S+\.\S+$/.test(mail)) { this.setState({ err: 'Escribe un correo válido.' }); return; }
+        const id = Date.now();
+        this.notify('Invitación enviada como ' + s.invRole, {
+          sheetOpen: false, draft: '',
+          members: s.members.concat([{ id, name: mail.split('@')[0], sub: 'Invitación pendiente', role: s.invRole }])
+        });
+      },
+      hasToast: !!s.toast,
+      toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

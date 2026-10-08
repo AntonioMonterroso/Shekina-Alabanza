@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Repertorio público</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500..600,100&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.pg a{color:var(--primary)}
+.pg button,.pg input{font:inherit;color:inherit}
+.wrap{width:100%;max-width:1080px;margin:0 auto;padding:0 24px}
+
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes rise2{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.rise{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes morph{0%,100%{border-radius:58% 42% 55% 45%/48% 60% 40% 52%;transform:translate(0,0) rotate(0)}50%{border-radius:42% 58% 40% 60%/58% 44% 56% 42%;transform:translate(-14px,12px) rotate(10deg)}}
+.blob{position:absolute;animation:morph 18s ease-in-out infinite;pointer-events:none}
+
+@keyframes eq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.eq{display:flex;align-items:center;gap:3px;height:22px}
+.eq span{width:4px;height:22px;border-radius:2px;animation:eq 1.1s ease-in-out infinite}
+.eq span:nth-child(2){animation-delay:-.4s;animation-duration:.9s}
+.eq span:nth-child(3){animation-delay:-.7s;animation-duration:1.3s}
+.eq span:nth-child(4){animation-delay:-.2s}
+
+.btn{height:48px;padding:0 20px;border:0;border-radius:16px;background:var(--primary);color:#FFFFFF !important;font-weight:800;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;cursor:pointer;box-shadow:0 10px 22px -12px var(--primary);transition:transform .2s,box-shadow .3s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px);box-shadow:0 14px 26px -12px var(--primary)}
+.btn:active{transform:scale(.98)}
+
+.hero{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;align-items:start}
+@media (min-width:900px){.hero{grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr);gap:48px}}
+
+.svc{display:flex;flex-wrap:wrap;gap:8px}
+.schip{min-height:48px;padding:6px 16px;border:1.5px solid var(--line);border-radius:16px;background:#FFFFFF;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;line-height:1.15;transition:background .2s,border-color .2s,color .2s}
+.schip:hover{border-color:var(--primary)}
+.schip.on{background:var(--primary);border-color:var(--primary);color:#FFFFFF}
+.schip small{font-size:12px;font-weight:700;opacity:.8}
+.schip b{font-size:15px;font-weight:800}
+
+.setlist{background:#FFFFFF;border-radius:28px;padding:10px;box-shadow:0 24px 48px -36px var(--ink)}
+.row{display:flex;align-items:center;gap:14px;padding:12px;border-radius:20px;transition:background .2s}
+.row:hover{background:var(--soft)}
+.row.a{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.row.b{animation:rise2 .5s cubic-bezier(.2,.7,.2,1) both}
+.num{width:36px;height:36px;border-radius:12px;background:var(--soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+.tag{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:9px;font-size:12px;font-weight:800;white-space:nowrap}
+.listen{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--soft);flex-shrink:0;transition:background .2s,color .2s}
+.listen:hover{background:var(--primary);color:#FFFFFF !important}
+.hide-sm{display:none}
+@media (min-width:600px){.hide-sm{display:inline-flex}}
+
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.search{position:relative;flex:1 1 260px;min-width:0}
+.search input{width:100%;height:50px;border:1.5px solid var(--line);border-radius:16px;background:#FFFFFF;padding:0 16px 0 46px;font-size:16px;outline:none;transition:border-color .25s,box-shadow .3s}
+.search input:focus{border-color:var(--primary);box-shadow:0 0 0 5px var(--ring)}
+.search svg{position:absolute;left:16px;top:15px;color:var(--muted)}
+.fchip{height:44px;padding:0 16px;border:1.5px solid var(--line);border-radius:14px;background:#FFFFFF;font-size:14px;font-weight:800;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.fchip:hover{border-color:var(--primary)}
+.fchip.on{background:var(--ink);border-color:var(--ink);color:#FFFFFF}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.card{display:flex;flex-direction:column;gap:12px;padding:18px;border-radius:24px;background:#FFFFFF;border:1.5px solid var(--line);transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .3s,border-color .25s;animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.card:hover{transform:translateY(-3px);box-shadow:0 18px 30px -24px var(--ink);border-color:transparent}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+.prop{height:44px;padding:0 14px;border:1.5px solid var(--line);border-radius:14px;background:#FFFFFF;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .25s,border-color .25s,color .25s}
+.prop:hover{border-color:var(--primary)}
+.prop.on{background:var(--primary);border-color:var(--primary);color:#FFFFFF;animation:pop .4s cubic-bezier(.3,1.4,.5,1)}
+
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld label{font-size:14px;font-weight:800}
+.fld input{height:52px;border:1.5px solid var(--line);border-radius:16px;background:#FFFFFF;padding:0 16px;font-size:16px;outline:none;transition:border-color .25s,box-shadow .3s}
+.fld input:focus{border-color:var(--primary);box-shadow:0 0 0 5px var(--ring)}
+@keyframes draw{from{stroke-dashoffset:40}to{stroke-dashoffset:0}}
+.okc path{stroke-dasharray:40;animation:draw .6s ease-out .2s both}
+@keyframes popIn{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+.thanks{animation:popIn .5s cubic-bezier(.3,1.4,.5,1) both}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition:none !important}}
+</style>
+</helmet>
+<main class="pg" style="--primary: {{t.primary}}; --ink: {{t.ink}}; --muted: {{t.muted}}; --line: {{t.line}}; --ring: {{t.ring}}; --soft: {{t.soft}}; position: relative; min-height: 100vh; background: {{t.bg}}; font-family: Nunito, system-ui, sans-serif; color: {{t.ink}}; overflow: hidden">
+
+  <div aria-hidden="true" class="blob" style="width: 520px; height: 460px; right: -180px; top: -200px; background: {{t.blob1}}"></div>
+  <div aria-hidden="true" class="blob" style="width: 380px; height: 340px; left: -200px; top: 520px; background: {{t.blob2}}; animation-direction: reverse"></div>
+
+  <header class="wrap rise" style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 22px; padding-bottom: 22px">
+    <div style="display: flex; align-items: center; gap: 12px; min-width: 0">
+      <span style="width: 48px; height: 48px; border-radius: 16px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 8px 20px -14px {{t.ink}}">
+        <span class="eq" aria-hidden="true"><span style="background: {{t.leaf}}"></span><span style="background: {{t.primary}}"></span><span style="background: {{t.leaf}}"></span><span style="background: {{t.primary}}"></span></span>
+      </span>
+      <span style="display: flex; flex-direction: column; min-width: 0">
+        <span style="font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">[Nombre de la iglesia]</span>
+        <span style="font-size: 13px; font-weight: 700; color: {{t.muted}}">Ministerio de alabanza</span>
+      </span>
+    </div>
+    <a href="#proponer" class="btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+      <span>Proponer</span>
+    </a>
+  </header>
+
+  <section class="wrap" style="position: relative; padding-top: 28px; padding-bottom: 64px">
+    <div class="hero">
+      <div style="display: flex; flex-direction: column; gap: 18px">
+        <span class="rise" style="animation-delay: 80ms; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: {{t.primary}}">{{svc.kind}}</span>
+        <h1 class="rise" style="animation-delay: 140ms; margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: clamp(36px, 6vw, 60px); line-height: 1.02; font-weight: 600; letter-spacing: -0.025em">Lo que cantaremos</h1>
+        <p class="rise" style="animation-delay: 200ms; margin: 0; font-size: 18px; line-height: 1.5; color: {{t.muted}}"><b style="color: {{t.ink}}">{{svc.fecha}}</b> · {{svc.hora}}<br>Escúchalas antes y llega listo para cantar.</p>
+        <div class="rise svc" role="tablist" aria-label="Servicios" style="animation-delay: 260ms">
+          <sc-for list="{{services}}" as="s" hint-placeholder-count="3">
+            <button type="button" role="tab" aria-selected="{{s.on}}" class="{{s.cls}}" onClick="{{s.pick}}"><small>{{s.dia}}</small><b>{{s.num}}</b></button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div class="rise setlist" style="animation-delay: 220ms">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px 6px 12px">
+          <span style="font-size: 15px; font-weight: 800">Orden del servicio</span>
+          <span style="font-size: 13px; font-weight: 700; color: {{t.muted}}">{{svc.count}} canciones</span>
+        </div>
+        <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+          <sc-for list="{{setlist}}" as="r" hint-placeholder-count="5">
+            <li class="{{r.cls}}" style="animation-delay: {{r.delay}}">
+              <span class="num">{{r.n}}</span>
+              <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex-grow: 1">
+                <span style="font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.title}}</span>
+                <span style="font-size: 14px; color: {{t.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.author}} · {{r.moment}}</span>
+              </span>
+              <span class="tag hide-sm" style="background: {{t.soft}}; color: {{t.primary}}">Tono {{r.key}}</span>
+              <a class="listen" href="{{r.url}}" aria-label="{{r.aria}}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.7L9.5 4.6A1 1 0 0 0 8 5.5z"></path></svg>
+              </a>
+            </li>
+          </sc-for>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" style="position: relative; padding-bottom: 64px; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
+      <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: clamp(28px, 4vw, 38px); font-weight: 600; letter-spacing: -0.02em">Repertorio</h2>
+      <span style="font-size: 15px; color: {{t.muted}}">¿Quieres cantar alguna? Proponla con un toque.</span>
+    </div>
+    <div class="tools">
+      <div class="search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+        <label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Buscar canción</label>
+        <input id="q" type="search" placeholder="Buscar por canción o autor" value="{{q}}" onChange="{{onQ}}">
+      </div>
+      <div role="tablist" aria-label="Tipo" style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{cats}}" as="c" hint-placeholder-count="3">
+          <button type="button" role="tab" aria-selected="{{c.on}}" class="{{c.cls}}" onClick="{{c.pick}}">{{c.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div class="grid">
+      <sc-for list="{{songs}}" as="s" hint-placeholder-count="8">
+        <article class="card" style="animation-delay: {{s.delay}}">
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 800">{{s.title}}</h3>
+            <span style="font-size: 14px; color: {{t.muted}}">{{s.author}}</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <span class="tag" style="background: {{s.cBg}}; color: {{s.cFg}}">{{s.cat}}</span>
+            <span class="tag" style="background: {{t.soft}}; color: {{t.primary}}">Tono {{s.key}}</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto">
+            <button type="button" class="{{s.pCls}}" aria-pressed="{{s.on}}" onClick="{{s.toggle}}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="{{s.fill}}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"></path></svg>
+              <span>{{s.pLabel}}</span>
+            </button>
+            <span style="font-size: 13px; font-weight: 700; color: {{t.muted}}">{{s.votes}}</span>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+    <sc-if value="{{noSongs}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 0; padding: 24px; text-align: center; font-size: 16px; color: {{t.muted}}">No la encontramos en el repertorio. Puedes sugerirla abajo.</p>
+    </sc-if>
+  </section>
+
+  <section id="proponer" class="wrap" style="position: relative; padding-bottom: 56px">
+    <div style="position: relative; overflow: hidden; border-radius: 32px; background: {{t.card}}; padding: clamp(24px, 5vw, 48px)">
+      <div aria-hidden="true" class="blob" style="width: 260px; height: 240px; right: -90px; bottom: -110px; background: {{t.blob1}}"></div>
+      <sc-if value="{{notSent}}" hint-placeholder-val="{{ true }}">
+        <form onSubmit="{{send}}" style="position: relative; display: flex; flex-direction: column; gap: 22px">
+          <div style="display: flex; flex-direction: column; gap: 6px; max-width: 560px">
+            <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: clamp(26px, 4vw, 36px); font-weight: 600; letter-spacing: -0.02em">¿Falta una canción?</h2>
+            <p style="margin: 0; font-size: 16px; line-height: 1.5; color: {{t.muted}}">Sugiérela y el equipo de alabanza la revisará para un próximo servicio.</p>
+          </div>
+          <div class="form">
+            <div class="fld"><label for="f1">Canción</label><input id="f1" type="text" placeholder="Nombre de la canción" value="{{f1}}" onChange="{{on1}}"></div>
+            <div class="fld"><label for="f2">Autor o intérprete <span style="font-weight: 600; color: {{t.muted}}">(opcional)</span></label><input id="f2" type="text" placeholder="¿Quién la canta?" value="{{f2}}" onChange="{{on2}}"></div>
+            <div class="fld"><label for="f3">Tu nombre <span style="font-weight: 600; color: {{t.muted}}">(opcional)</span></label><input id="f3" type="text" placeholder="Para agradecerte" value="{{f3}}" onChange="{{on3}}"></div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px">
+            <button type="submit" class="btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-2.5-6.5z"></path></svg>
+              <span>Enviar sugerencia</span>
+            </button>
+            <span role="status" style="font-size: 14px; font-weight: 700; color: #B3261E">{{err}}</span>
+          </div>
+        </form>
+      </sc-if>
+      <sc-if value="{{sent}}" hint-placeholder-val="{{ false }}">
+        <div class="thanks" role="status" style="position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 14px">
+          <span style="width: 64px; height: 64px; border-radius: 22px; background: {{t.primary}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+            <svg class="okc" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+          </span>
+          <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: clamp(26px, 4vw, 36px); font-weight: 600">¡Gracias por tu sugerencia!</h2>
+          <p style="margin: 0; font-size: 16px; color: {{t.muted}}">Recibimos «{{sentTitle}}». El equipo de alabanza la revisará.</p>
+          <button type="button" class="prop" onClick="{{again}}">Sugerir otra</button>
+        </div>
+      </sc-if>
+    </div>
+  </section>
+
+  <footer class="wrap" style="position: relative; padding-bottom: 40px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 14px; color: {{t.muted}}">
+    <span>[Nombre de la iglesia] · Ministerio de alabanza</span>
+    <span>Actualizado por el equipo cada semana</span>
+  </footer>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tema":{"editor":"enum","options":["Salvia","Rosa"],"default":"Salvia"},"$preview":{"width":1280,"height":1960}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { svc: 0, flip: 0, q: '', cat: 'Todas', mine: {}, f1: '', f2: '', f3: '', err: '', sent: '' };
+  }
+  renderVals() {
+    const s = this.state;
+    const themes = {
+      Rosa: { bg: '#FCF3F1', blob1: '#F7D6CF', blob2: '#FBE6CC', card: '#F9DFD9', primary: '#A3485A', leaf: '#EFBEB5', ink: '#3A2629', muted: '#76595D', line: '#F0DAD5', ring: 'rgba(163,72,90,.14)', soft: '#FBEDEA' },
+      Salvia: { bg: '#F2F7EE', blob1: '#D3E8CC', blob2: '#F5E9C9', card: '#DCEDD5', primary: '#3D6B4A', leaf: '#A9D4A0', ink: '#22322A', muted: '#57695D', line: '#DBE7D4', ring: 'rgba(61,107,74,.14)', soft: '#EEF5EA' }
+    };
+    const t = themes[this.props.tema ?? 'Salvia'] || themes.Salvia;
+    const S = {
+      a: { title: 'Sublime gracia', author: 'John Newton', key: 'Sol', cat: 'Adoración', votes: 4 },
+      b: { title: 'Cuán grande es Él', author: 'Carl Boberg', key: 'La', cat: 'Adoración', votes: 9 },
+      c: { title: 'Santo, santo, santo', author: 'Reginald Heber', key: 'Re', cat: 'Adoración', votes: 2 },
+      d: { title: 'Grande es tu fidelidad', author: 'Thomas Chisholm', key: 'Mi', cat: 'Adoración', votes: 6 },
+      e: { title: 'Castillo fuerte', author: 'Martín Lutero', key: 'Do', cat: 'Alabanza', votes: 3 },
+      f: { title: 'Alcancé salvación', author: 'Horatio Spafford', key: 'Re', cat: 'Adoración', votes: 5 },
+      g: { title: 'Oh, qué amigo nos es Cristo', author: 'Joseph Scriven', key: 'Fa', cat: 'Adoración', votes: 1 },
+      h: { title: 'Firmes y adelante', author: 'Sabine Baring-Gould', key: 'Sol', cat: 'Alabanza', votes: 2 },
+      i: { title: 'Tal como soy', author: 'Charlotte Elliott', key: 'Mi', cat: 'Adoración', votes: 0 },
+      j: { title: 'Dulce oración', author: 'William Walford', key: 'Re', cat: 'Adoración', votes: 1 },
+      k: { title: 'A solas al huerto', author: 'C. Austin Miles', key: 'La', cat: 'Adoración', votes: 3 },
+      l: { title: 'Gloria a ti, Jesús divino', author: 'Himno tradicional', key: 'Sol', cat: 'Alabanza', votes: 2 }
+    };
+    const services = [
+      { dia: 'Dom', num: '11 oct', fecha: 'Domingo 11 de octubre', hora: '10:00 a. m.', kind: 'Servicio dominical', list: [['e', 'Bienvenida'], ['h', 'Alabanza'], ['b', 'Adoración'], ['a', 'Adoración'], ['d', 'Ofrenda']] },
+      { dia: 'Mié', num: '14 oct', fecha: 'Miércoles 14 de octubre', hora: '7:00 p. m.', kind: 'Culto de oración', list: [['j', 'Inicio'], ['g', 'Oración'], ['i', 'Cierre']] },
+      { dia: 'Dom', num: '18 oct', fecha: 'Domingo 18 de octubre', hora: '10:00 a. m.', kind: 'Santa Cena', list: [['l', 'Bienvenida'], ['c', 'Adoración'], ['f', 'Adoración'], ['k', 'Santa Cena'], ['d', 'Cierre']] }
+    ];
+    const cur = services[s.svc];
+    const url = (x) => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(x.title + ' ' + x.author);
+    const norm = (x) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    const q = norm(s.q.trim());
+    const catColors = { 'Alabanza': ['#FBE6CC', '#7A4E14'], 'Adoración': ['#E6DDF5', '#533E87'] };
+    const songs = Object.keys(S).map(k => Object.assign({ id: k }, S[k]))
+      .filter(x => s.cat === 'Todas' || x.cat === s.cat)
+      .filter(x => !q || norm(x.title + ' ' + x.author).indexOf(q) >= 0)
+      .map((x, i) => {
+        const on = !!s.mine[x.id];
+        const v = x.votes + (on ? 1 : 0);
+        return {
+          title: x.title, author: x.author, key: x.key, cat: x.cat,
+          cBg: catColors[x.cat][0], cFg: catColors[x.cat][1],
+          delay: Math.min(i * 40, 400) + 'ms',
+          on, pCls: 'prop' + (on ? ' on' : ''), fill: on ? 'currentColor' : 'none',
+          pLabel: on ? 'Propuesta' : 'Proponer',
+          votes: v === 0 ? 'Sé el primero' : v === 1 ? '1 persona' : v + ' personas',
+          toggle: () => { const m = Object.assign({}, s.mine); m[x.id] = !on; this.setState({ mine: m }); }
+        };
+      });
+    return {
+      t,
+      svc: { kind: cur.kind, fecha: cur.fecha, hora: cur.hora, count: cur.list.length },
+      services: services.map((x, i) => ({ dia: x.dia, num: x.num, on: i === s.svc, cls: 'schip' + (i === s.svc ? ' on' : ''), pick: () => this.setState({ svc: i, flip: s.flip + 1 }) })),
+      setlist: cur.list.map(([k, moment], i) => ({
+        n: i + 1, title: S[k].title, author: S[k].author, key: S[k].key, moment,
+        url: url(S[k]), aria: 'Escuchar ' + S[k].title,
+        cls: 'row ' + (s.flip % 2 ? 'b' : 'a'), delay: (i * 60) + 'ms'
+      })),
+      q: s.q,
+      onQ: (e) => this.setState({ q: e.target.value }),
+      cats: ['Todas', 'Alabanza', 'Adoración'].map(c => ({ label: c, on: s.cat === c, cls: 'fchip' + (s.cat === c ? ' on' : ''), pick: () => this.setState({ cat: c }) })),
+      songs,
+      noSongs: songs.length === 0,
+      f1: s.f1, f2: s.f2, f3: s.f3, err: s.err,
+      on1: (e) => this.setState({ f1: e.target.value, err: '' }),
+      on2: (e) => this.setState({ f2: e.target.value }),
+      on3: (e) => this.setState({ f3: e.target.value }),
+      sent: !!s.sent, notSent: !s.sent, sentTitle: s.sent,
+      send: (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        if (!s.f1.trim()) { this.setState({ err: 'Escribe el nombre de la canción.' }); return; }
+        this.setState({ sent: s.f1.trim(), f1: '', f2: '', f3: '' });
+      },
+      again: () => this.setState({ sent: '' })
+    };
+  }
+}
+</script>
+</body>
+</html>

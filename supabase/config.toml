@@ -1,0 +1,15 @@
+# Parámetros que importan para el login solo con usuario y contraseña.
+# (Se aplican al proyecto con `supabase config push`, o desde Authentication → Providers en el panel.)
+[auth]
+enable_signup = false            # sin registro público: solo los líderes crean cuentas
+minimum_password_length = 8
+
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+
+[functions.admin-crear-usuario]
+verify_jwt = true
+
+[functions.admin-cambiar-password]
+verify_jwt = true

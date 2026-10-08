@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Turnos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500..600,100&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.app a{color:var(--primary)}
+.app button{font:inherit;color:inherit}
+
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes rise2{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.rise{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes morph{0%,100%{border-radius:58% 42% 55% 45%/48% 60% 40% 52%;transform:translate(0,0) rotate(0)}50%{border-radius:42% 58% 40% 60%/58% 44% 56% 42%;transform:translate(-12px,10px) rotate(10deg)}}
+.blob{position:absolute;animation:morph 16s ease-in-out infinite}
+
+.iconbtn{height:44px;min-width:44px;padding:0 12px;border:0;border-radius:16px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--ink);box-shadow:0 8px 20px -14px var(--ink);text-decoration:none;flex-shrink:0;cursor:pointer;font-size:14px;font-weight:800}
+.app a.iconbtn{color:var(--ink)}
+
+.seg{position:relative;flex-shrink:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));height:50px;padding:5px;border-radius:18px;background:#FFFFFF;border:1.5px solid var(--line)}
+.seg .pill{position:absolute;top:5px;bottom:5px;left:5px;width:calc(50% - 5px);border-radius:13px;background:var(--primary);transition:transform .45s cubic-bezier(.3,1.2,.4,1)}
+.seg .pill.r{transform:translateX(100%)}
+.seg button{position:relative;border:0;background:none;font-size:15px;font-weight:800;cursor:pointer;border-radius:13px;transition:color .3s}
+.seg button.on{color:#FFFFFF}
+
+.card{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:24px;background:#FFFFFF;border:1.5px solid var(--line)}
+.card.a{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+.card.b{animation:rise2 .45s cubic-bezier(.2,.7,.2,1) both}
+.date{width:50px;height:54px;border-radius:15px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;flex-shrink:0}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;background:var(--primary);transition:width .5s cubic-bezier(.3,0,.2,1)}
+
+.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.slot{display:flex;align-items:center;gap:10px;padding:8px 10px;min-height:56px;border:1.5px solid var(--line);border-radius:16px;background:#FFFFFF;cursor:pointer;text-align:left;transition:border-color .2s,transform .15s}
+.slot:hover{border-color:var(--primary)}
+.slot:active{transform:scale(.97)}
+.slot.ro{cursor:default}.slot.ro:hover{border-color:var(--line)}.slot.ro:active{transform:none}
+.slot.no{border-color:#E9B5AD;background:#FDF3F1}
+.st{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.st.ok{background:var(--primary);color:#FFFFFF}
+.st.pend{background:#FBE6CC;color:#7A4E14}
+.st.no{background:#FBE3DF;color:#9A2A1F}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;font-weight:800;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+.cbtn{flex:1;height:46px;border:0;border-radius:15px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .2s}
+.cbtn:active{transform:scale(.97)}
+.cbtn.yes{background:var(--primary);color:#FFFFFF}
+.cbtn.no{background:var(--soft);color:var(--ink)}
+.pillst{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:10px;font-size:13px;font-weight:800}
+.link{border:0;background:none;padding:0 4px;min-height:44px;font-size:14px;font-weight:800;color:var(--muted);cursor:pointer}
+
+.tab{flex:1;height:60px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;border-radius:16px;text-decoration:none}
+.tab.on{color:var(--primary)}
+.app a.tab{color:var(--muted)}
+.fab{width:60px;height:60px;margin-top:-26px;border:0;border-radius:22px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 12px 24px -10px var(--primary)}
+
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(100%)}}
+.scrim{animation:fade .3s ease both}
+.sheet{animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+.pick{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:60px;border:1.5px solid var(--line);border-radius:18px;background:#FFFFFF;cursor:pointer;text-align:left;width:100%;transition:border-color .2s}
+.pick:hover{border-color:var(--primary)}
+.pick.cur{border-color:var(--primary);background:var(--soft)}
+.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.dchip{min-height:56px;border:1.5px solid var(--line);border-radius:16px;background:#FFFFFF;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;transition:background .2s,border-color .2s,color .2s}
+.dchip small{font-size:12px;font-weight:700;opacity:.8}
+.dchip b{font-size:15px;font-weight:800}
+.dchip.on{background:#FBE3DF;border-color:#E9B5AD;color:#9A2A1F}
+.save{height:54px;border:0;border-radius:18px;background:var(--primary);color:#FFFFFF;font-size:16px;font-weight:800;cursor:pointer}
+
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,-12px)}12%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-12px)}}
+.toast{position:absolute;left:50%;top:54px;padding:12px 18px;border-radius:16px;background:var(--ink);color:#fff;font-size:14px;font-weight:700;white-space:nowrap;animation:toastIn 2.4s ease both;display:flex;align-items:center;gap:8px;z-index:5}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition:none !important}}
+</style>
+</helmet>
+<main class="app" style="--primary: {{t.primary}}; --ink: {{t.ink}}; --muted: {{t.muted}}; --line: {{t.line}}; --soft: {{t.soft}}; --card: {{t.card}}; position: relative; width: 390px; height: 844px; background: {{t.bg}}; font-family: Nunito, system-ui, sans-serif; color: {{t.ink}}; overflow: hidden">
+
+  <div aria-hidden="true" class="blob" style="width: 260px; height: 240px; right: -120px; top: -100px; background: {{t.blob1}}"></div>
+
+  <div style="position: relative; height: 100%; display: flex; flex-direction: column; gap: 14px; padding: 54px 20px 0 20px">
+
+    <header class="rise" style="animation-delay: 0ms; flex-shrink: 0; display: flex; align-items: center; gap: 12px">
+      <a href="Home.dc.html" class="iconbtn" aria-label="Volver al inicio">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+        <h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1">Turnos</h1>
+        <span style="font-size: 14px; font-weight: 700; color: {{t.muted}}">Octubre · [Grupo de alabanza 1]</span>
+      </div>
+      <button type="button" class="iconbtn" onClick="{{openUnav}}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4M9.5 13.5l5 5M14.5 13.5l-5 5"></path></svg>
+        <span>No puedo</span>
+      </button>
+    </header>
+
+    <div class="rise seg" role="tablist" aria-label="Vista" style="animation-delay: 80ms">
+      <span class="{{pillCls}}" aria-hidden="true"></span>
+      <button type="button" role="tab" aria-selected="{{isMine}}" class="{{segMine}}" onClick="{{goMine}}">Mis turnos</button>
+      <button type="button" role="tab" aria-selected="{{isAll}}" class="{{segAll}}" onClick="{{goAll}}">{{allLabel}}</button>
+    </div>
+
+    <div style="flex: 1 1 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin: 0 -20px; padding: 0 20px 112px 20px">
+
+      <sc-if value="{{isMine}}" hint-placeholder-val="{{ true }}">
+        <sc-for list="{{mine}}" as="m" hint-placeholder-count="3">
+          <div class="{{m.cls}}" style="animation-delay: {{m.delay}}">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <span class="date">
+                <span style="font-size: 11px; font-weight: 800; color: {{t.primary}}; text-transform: uppercase">{{m.dia}}</span>
+                <span style="font-size: 20px; font-weight: 800; margin-top: 3px">{{m.num}}</span>
+                <span style="font-size: 11px; font-weight: 800; color: {{t.muted}}; text-transform: uppercase">oct</span>
+              </span>
+              <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex-grow: 1">
+                <span style="font-size: 17px; font-weight: 800">{{m.role}}</span>
+                <span style="font-size: 13px; color: {{t.muted}}">{{m.kind}} · {{m.call}}</span>
+              </span>
+            </div>
+            <sc-if value="{{m.pend}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; gap: 8px">
+                <button type="button" class="cbtn yes" onClick="{{m.yes}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>Confirmar</button>
+                <button type="button" class="cbtn no" onClick="{{m.no}}">No puedo</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{m.done}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; justify-content: space-between">
+                <span class="pillst" style="background: {{m.pBg}}; color: {{m.pFg}}">{{m.statusText}}</span>
+                <button type="button" class="link" onClick="{{m.reset}}">Cambiar</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+        <p style="margin: 6px 4px 0 4px; font-size: 14px; line-height: 1.45; color: {{t.muted}}">Si no puedes, el líder recibe el aviso y busca reemplazo. Marca con tiempo las fechas que no puedes.</p>
+      </sc-if>
+
+      <sc-if value="{{isAll}}" hint-placeholder-val="{{ false }}">
+        <div class="legend" style="padding: 0 4px">
+          <span><i class="st ok" style="width: 16px; height: 16px"></i>Confirmado</span>
+          <span><i class="st pend" style="width: 16px; height: 16px"></i>Pendiente</span>
+          <span><i class="st no" style="width: 16px; height: 16px"></i>No puede</span>
+        </div>
+        <sc-for list="{{all}}" as="sv" hint-placeholder-count="2">
+          <section class="{{sv.cls}}" style="animation-delay: {{sv.delay}}">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <span class="date">
+                <span style="font-size: 11px; font-weight: 800; color: {{t.primary}}; text-transform: uppercase">{{sv.dia}}</span>
+                <span style="font-size: 20px; font-weight: 800; margin-top: 3px">{{sv.num}}</span>
+                <span style="font-size: 11px; font-weight: 800; color: {{t.muted}}; text-transform: uppercase">oct</span>
+              </span>
+              <span style="display: flex; flex-direction: column; gap: 6px; min-width: 0; flex-grow: 1">
+                <span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 16px; font-weight: 800">{{sv.kind}}</span><span style="font-size: 13px; font-weight: 800; color: {{t.muted}}">{{sv.okN}}/{{sv.total}}</span></span>
+                <span class="bar"><i style="width: {{sv.pct}}"></i></span>
+                <sc-if value="{{sv.hasNo}}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size: 12px; font-weight: 800; color: #9A2A1F">Falta reemplazo</span>
+                </sc-if>
+              </span>
+            </div>
+            <div class="slots">
+              <sc-for list="{{sv.slots}}" as="sl" hint-placeholder-count="8">
+                <button type="button" class="{{sl.cls}}" aria-label="{{sl.aria}}" onClick="{{sl.open}}">
+                  <span class="{{sl.stCls}}" aria-hidden="true">
+                    <sc-if value="{{sl.ok}}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg></sc-if>
+                    <sc-if value="{{sl.pend}}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 7v5l3 2"></path></svg></sc-if>
+                    <sc-if value="{{sl.no}}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></sc-if>
+                  </span>
+                  <span style="display: flex; flex-direction: column; min-width: 0">
+                    <span style="font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: {{t.muted}}">{{sl.role}}</span>
+                    <span style="font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{sl.who}}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </section>
+        </sc-for>
+      </sc-if>
+    </div>
+  </div>
+
+  <nav aria-label="Navegación principal" style="position: absolute; left: 12px; right: 12px; bottom: 16px; height: 72px; border-radius: 26px; background: #FFFFFF; display: flex; align-items: center; padding: 0 6px; box-shadow: 0 14px 30px -20px {{t.ink}}">
+    <a class="tab" href="Home.dc.html">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5L12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5h-4v-6h-5v6h-4A1.5 1.5 0 0 1 4 19z"></path></svg>
+      <span>Inicio</span>
+    </a>
+    <a class="tab" href="Projects.dc.html">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5.5l11-2V16"></path><circle cx="6.5" cy="18" r="2.5"></circle><circle cx="17.5" cy="16" r="2.5"></circle></svg>
+      <span>Cancionero</span>
+    </a>
+    <div style="flex: 1; display: flex; justify-content: center">
+      <a class="fab" href="Services.dc.html" aria-label="Servicios">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg>
+      </a>
+    </div>
+    <button type="button" class="tab on" aria-current="page">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+      <span>Turnos</span>
+    </button>
+    <a class="tab" href="Team.dc.html">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 19.5c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"></path><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18.5 14.4c1.8.8 3 2.6 3 5.1"></path></svg>
+      <span>Equipo</span>
+    </a>
+  </nav>
+
+  <sc-if value="{{pickOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="scrim" onClick="{{closePick}}" style="position: absolute; inset: 0; background: rgba(30,40,34,.28)"></div>
+    <div class="sheet" role="dialog" aria-label="Asignar turno" style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-radius: 32px 32px 0 0; padding: 14px 20px 30px 20px; display: flex; flex-direction: column; gap: 12px">
+      <span aria-hidden="true" style="align-self: center; width: 44px; height: 5px; border-radius: 3px; background: {{t.line}}"></span>
+      <div style="display: flex; flex-direction: column; gap: 4px; margin: 0 4px">
+        <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 24px; font-weight: 600">{{pickTitle}}</h2>
+        <p style="margin: 0; font-size: 15px; color: {{t.muted}}">Elige quién lo cubre. Le llegará el aviso para confirmar.</p>
+      </div>
+      <sc-for list="{{cands}}" as="c" hint-placeholder-count="3">
+        <button type="button" class="{{c.cls}}" onClick="{{c.pick}}">
+          <span class="av" style="background: {{c.bg}}; color: {{c.fg}}">{{c.ini}}</span>
+          <span style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+            <span style="font-size: 15px; font-weight: 800">{{c.name}}</span>
+            <span style="font-size: 13px; color: {{c.noteColor}}">{{c.note}}</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{unavOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="scrim" onClick="{{closeUnav}}" style="position: absolute; inset: 0; background: rgba(30,40,34,.28)"></div>
+    <div class="sheet" role="dialog" aria-label="Fechas que no puedo" style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-radius: 32px 32px 0 0; padding: 14px 20px 30px 20px; display: flex; flex-direction: column; gap: 14px">
+      <span aria-hidden="true" style="align-self: center; width: 44px; height: 5px; border-radius: 3px; background: {{t.line}}"></span>
+      <div style="display: flex; flex-direction: column; gap: 4px; margin: 0 4px">
+        <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 24px; font-weight: 600">¿Qué fechas no puedes?</h2>
+        <p style="margin: 0; font-size: 15px; color: {{t.muted}}">El líder no te asignará esos días.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{dates}}" as="d" hint-placeholder-count="6">
+          <button type="button" aria-pressed="{{d.on}}" class="{{d.cls}}" onClick="{{d.toggle}}"><small>{{d.dia}}</small><b>{{d.num}}</b></button>
+        </sc-for>
+      </div>
+      <button type="button" class="save" onClick="{{saveUnav}}">Guardar</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div class="toast" role="status">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+      <span>{{toast}}</span>
+    </div>
+  </sc-if>
+  <sc-if value="{{blocked}}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="position: absolute; inset: 0; z-index: 8; background: {{t.bg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px; text-align: center">
+      <span style="width: 72px; height: 72px; border-radius: 24px; background: {{t.soft}}; color: {{t.primary}}; display: flex; align-items: center; justify-content: center">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9.5" rx="2.5"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      </span>
+      <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px; font-weight: 600; color: {{t.ink}}">Turnos no es para tu rol</h2>
+      <p style="margin: 0; font-size: 16px; line-height: 1.5; color: {{t.muted}}">Como {{rol}}, ves solo lo que te corresponde. Si necesitas acceso, pídeselo a un líder.</p>
+      <a href="Home.dc.html" style="margin-top: 6px; height: 50px; padding: 0 22px; border-radius: 16px; background: {{t.primary}}; color: {{t.bg}}; display: flex; align-items: center; font-size: 15px; font-weight: 800; text-decoration: none">Volver al inicio</a>
+    </div>
+  </sc-if>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"verComo":{"editor":"enum","options":["Líder","Músico","Voz","Sonido","Alumno"],"default":"Líder"},"tema":{"editor":"enum","options":["Salvia","Rosa"],"default":"Salvia"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    const S = (role, who, st) => ({ role, who, st });
+    this.state = {
+      view: 'mine', flip: 0, pick: null, unavOpen: false, unav: ['o28'], toast: '', toastKey: 0,
+      svcs: [
+        { dia: 'dom', num: '11', kind: 'Servicio dominical', call: 'Llegada 8:30 a. m.', slots: [S('Dirige', 'Andrea', 'ok'), S('Voz 1', 'Carla', 'ok'), S('Voz 2', 'Tú', 'pend'), S('Teclado', 'Andrea', 'ok'), S('Guitarra', 'Ana', 'ok'), S('Bajo', 'Pedro', 'no'), S('Batería', 'Luis', 'ok'), S('Sonido', 'Marcos', 'ok')] },
+        { dia: 'mié', num: '14', kind: 'Culto de oración', call: 'Llegada 6:30 p. m.', slots: [S('Dirige', 'Carla', 'ok'), S('Voz 2', 'Tú', 'ok'), S('Teclado', 'Andrea', 'pend'), S('Sonido', 'Elena', 'ok')] },
+        { dia: 'dom', num: '18', kind: 'Santa Cena', call: 'Llegada 8:30 a. m.', slots: [S('Dirige', 'Andrea', 'ok'), S('Voz 1', 'Carla', 'pend'), S('Voz 2', 'Elena', 'ok'), S('Teclado', 'Andrea', 'ok'), S('Guitarra', 'Jorge', 'pend'), S('Bajo', 'Pedro', 'ok'), S('Batería', 'Luis', 'no'), S('Sonido', 'Marcos', 'pend')] },
+        { dia: 'dom', num: '25', kind: 'Servicio dominical', call: 'Llegada 8:30 a. m.', slots: [S('Dirige', 'Tú', 'pend'), S('Voz 1', 'Carla', 'pend'), S('Voz 2', 'Elena', 'pend'), S('Teclado', 'Andrea', 'pend'), S('Guitarra', 'Ana', 'pend'), S('Bajo', 'Jorge', 'pend'), S('Batería', 'Luis', 'pend'), S('Sonido', 'Marcos', 'pend')] }
+      ]
+    };
+    this.timers = [];
+  }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); }
+  later(fn, ms) { this.timers.push(setTimeout(fn, ms)); }
+  notify(msg, extra) {
+    const k = this.state.toastKey + 1;
+    this.setState(Object.assign({ toast: msg, toastKey: k }, extra || {}));
+    this.later(() => { if (this.state.toastKey === k) this.setState({ toast: '' }); }, 2400);
+  }
+  setSlot(si, li, patch) {
+    return this.state.svcs.map((sv, i) => i !== si ? sv : Object.assign({}, sv, { slots: sv.slots.map((sl, j) => j !== li ? sl : Object.assign({}, sl, patch)) }));
+  }
+  renderVals() {
+    const s = this.state;
+    const themes = {
+      Rosa: { bg: '#FCF3F1', blob1: '#F7D6CF', card: '#F9DFD9', primary: '#A3485A', ink: '#3A2629', muted: '#76595D', line: '#F0DAD5', soft: '#FBEDEA' },
+      Salvia: { bg: '#F2F7EE', blob1: '#D3E8CC', card: '#DCEDD5', primary: '#3D6B4A', ink: '#22322A', muted: '#57695D', line: '#DBE7D4', soft: '#EEF5EA' }
+    };
+    const t = themes[this.props.tema ?? 'Salvia'] || themes.Salvia;
+    const rol = this.props.verComo ?? 'Líder';
+    const isLeader = rol === 'Líder';
+    const can = {
+      'Dirige': ['Andrea', 'Carla', 'Tú'], 'Voz 1': ['Carla', 'Tú', 'Elena'], 'Voz 2': ['Tú', 'Elena', 'Carla'],
+      'Teclado': ['Andrea'], 'Guitarra': ['Ana', 'Jorge'], 'Bajo': ['Pedro', 'Jorge'], 'Batería': ['Luis'], 'Sonido': ['Marcos', 'Elena']
+    };
+    const pal = { 'Tú': [t.primary, '#FFFFFF'], Andrea: ['#E6DDF5', '#533E87'], Carla: ['#F7D6CF', '#93394B'], Elena: ['#F7D6CF', '#93394B'], Luis: ['#DCE8F7', '#2A527E'], Pedro: ['#DCE8F7', '#2A527E'], Ana: ['#DCE8F7', '#2A527E'], Jorge: ['#DCE8F7', '#2A527E'], Marcos: ['#D5ECE7', '#285F57'] };
+    const busyNo = { Luis: ['18'], Pedro: ['11'] };
+    const anim = s.flip % 2 ? ' b' : ' a';
+    const me = { 'Músico': 'Ana', 'Sonido': 'Marcos' }[rol];
+    const sw = (n) => !me ? n : n === me ? 'Tú' : n === 'Tú' ? me : n;
+    const mine = [];
+    s.svcs.forEach((sv, si) => sv.slots.forEach((sl, li) => {
+      if (sw(sl.who) !== 'Tú') return;
+      mine.push({
+        dia: sv.dia, num: sv.num, kind: sv.kind, call: sv.call, role: sl.role,
+        cls: 'card' + anim, delay: (mine.length * 60) + 'ms',
+        pend: sl.st === 'pend', done: sl.st !== 'pend',
+        statusText: sl.st === 'ok' ? 'Confirmado' : 'Avisaste que no puedes',
+        pBg: sl.st === 'ok' ? t.soft : '#FBE3DF', pFg: sl.st === 'ok' ? t.primary : '#9A2A1F',
+        yes: () => this.notify('Turno del ' + sv.dia + ' ' + sv.num + ' confirmado', { svcs: this.setSlot(si, li, { st: 'ok' }) }),
+        no: () => this.notify('Se avisó al líder', { svcs: this.setSlot(si, li, { st: 'no' }) }),
+        reset: () => this.setState({ svcs: this.setSlot(si, li, { st: 'pend' }) })
+      });
+    }));
+    const all = s.svcs.map((sv, si) => {
+      const okN = sv.slots.filter(x => x.st === 'ok').length;
+      return {
+        dia: sv.dia, num: sv.num, kind: sv.kind, okN, total: sv.slots.length,
+        pct: Math.round(okN / sv.slots.length * 100) + '%',
+        hasNo: sv.slots.some(x => x.st === 'no'),
+        cls: 'card' + anim, delay: (si * 70) + 'ms',
+        slots: sv.slots.map((sl, li) => ({
+          role: sl.role, who: sw(sl.who),
+          ok: sl.st === 'ok', pend: sl.st === 'pend', no: sl.st === 'no',
+          cls: 'slot' + (sl.st === 'no' ? ' no' : '') + (isLeader ? '' : ' ro'),
+          stCls: 'st ' + sl.st,
+          aria: sl.role + ': ' + sw(sl.who) + ', ' + (sl.st === 'ok' ? 'confirmado' : sl.st === 'pend' ? 'pendiente' : 'no puede') + (isLeader ? '. Reasignar' : ''),
+          open: () => { if (isLeader) this.setState({ pick: [si, li] }); }
+        }))
+      };
+    });
+    let pickTitle = '', cands = [];
+    if (s.pick) {
+      const [si, li] = s.pick;
+      const sv = s.svcs[si], sl = sv.slots[li];
+      pickTitle = sl.role + ' · ' + sv.dia + ' ' + sv.num + ' oct';
+      cands = (can[sl.role] || []).map(name => {
+        const blocked = (busyNo[name] || []).indexOf(sv.num) >= 0 || (name === 'Tú' && s.unav.indexOf('o' + sv.num) >= 0);
+        const isCur = name === sl.who;
+        return {
+          name, ini: name === 'Tú' ? 'TÚ' : name.slice(0, 2).toUpperCase(),
+          bg: pal[name][0], fg: pal[name][1],
+          note: isCur ? 'Asignado ahora · ' + (sl.st === 'ok' ? 'confirmado' : sl.st === 'pend' ? 'pendiente' : 'no puede') : blocked ? 'Marcó que no puede esta fecha' : 'Disponible',
+          noteColor: blocked && !isCur ? '#9A2A1F' : t.muted,
+          cls: 'pick' + (isCur ? ' cur' : ''),
+          pick: () => isCur ? this.setState({ pick: null }) : this.notify('Se le pidió a ' + name + ' cubrir ' + sl.role, { pick: null, svcs: this.setSlot(si, li, { who: name, st: 'pend' }) })
+        };
+      });
+    }
+    const D = [['dom', '11'], ['mié', '14'], ['dom', '18'], ['mié', '21'], ['dom', '25'], ['mié', '28']];
+    return {
+      t, rol, isLeader, notLeader: !isLeader, blocked: ["Alumno"].indexOf(rol) >= 0, allLabel: isLeader ? "Todo el grupo" : "Mi equipo", mine, all,
+      isMine: s.view === 'mine', isAll: s.view === 'all',
+      pillCls: 'pill' + (s.view === 'all' ? ' r' : ''),
+      segMine: s.view === 'mine' ? 'on' : '', segAll: s.view === 'all' ? 'on' : '',
+      goMine: () => this.setState({ view: 'mine', flip: s.flip + 1 }),
+      goAll: () => this.setState({ view: 'all', flip: s.flip + 1 }),
+      pickOpen: !!s.pick, pickTitle, cands,
+      closePick: () => this.setState({ pick: null }),
+      unavOpen: s.unavOpen,
+      openUnav: () => this.setState({ unavOpen: true }),
+      closeUnav: () => this.setState({ unavOpen: false }),
+      dates: D.map(([dia, num]) => {
+        const id = 'o' + num, on = s.unav.indexOf(id) >= 0;
+        return { dia, num: num + ' oct', on, cls: 'dchip' + (on ? ' on' : ''), toggle: () => this.setState({ unav: on ? s.unav.filter(x => x !== id) : s.unav.concat([id]) }) };
+      }),
+      saveUnav: () => this.notify(s.unav.length ? 'Guardado: ' + s.unav.length + (s.unav.length === 1 ? ' fecha' : ' fechas') + ' sin turno' : 'Estás disponible todas las fechas', { unavOpen: false }),
+      hasToast: !!s.toast,
+      toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>
