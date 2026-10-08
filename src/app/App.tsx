@@ -2,17 +2,22 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import CambiarPassword from '../features/auth/CambiarPassword'
 import Login from '../features/auth/Login'
 import Inicio from '../features/inicio/Inicio'
+import Perfil from '../features/perfil/Perfil'
+import Proximamente from '../features/proximamente/Proximamente'
 import Publico from '../features/publico/Publico'
 import { AuthProvider, useAuth } from '../hooks/AuthProvider'
 import { supabaseConfigurado } from '../lib/supabase'
+import Layout from './Layout'
 
 function Protegida() {
   const { cargando, session, perfil } = useAuth()
   if (cargando) return <div className="pantalla grid place-items-center"><span className="spinner" style={{ borderColor: 'var(--line)', borderTopColor: 'var(--primary)' }} aria-label="Cargando" /></div>
   if (!session) return <Navigate to="/login" replace />
   if (perfil?.debe_cambiar_password) return <CambiarPassword />
-  return <Inicio />
+  return <Layout />
 }
+
+const pronto = (titulo: string, detalle: string) => <Proximamente titulo={titulo} detalle={detalle} />
 
 export default function App() {
   return (
@@ -26,7 +31,18 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/p/:slug" element={<Publico />} />
-          <Route path="/" element={<Protegida />} />
+          <Route element={<Protegida />}>
+            <Route index element={<Inicio />} />
+            <Route path="perfil" element={<Perfil />} />
+            <Route path="servicios" element={pronto('Servicios', 'Aquí se arma el orden del culto. Es el paso 6 del plan.')} />
+            <Route path="cancionero" element={pronto('Cancionero', 'Letras, acordes y fases de cada canción. Es el paso 5 del plan.')} />
+            <Route path="turnos" element={pronto('Turnos', 'Quién toca cuándo, con reemplazos. Es el paso 7 del plan.')} />
+            <Route path="ensayos" element={pronto('Ensayos', 'Asistencia, canciones a ensayar y guías. Es el paso 10 del plan.')} />
+            <Route path="equipo" element={pronto('Equipo', 'Agregar integrantes, roles y cambio de contraseñas. Es el paso 11 del plan.')} />
+            <Route path="escenario" element={pronto('Modo escenario', 'Letra y acordes en grande, con transposición. Es el paso 9 del plan.')} />
+            <Route path="proyeccion" element={pronto('Proyección', 'Control de la pantalla del templo. Llega después de Cancionero y Servicios.')} />
+            <Route path="avisos" element={pronto('Avisos', 'Mensajes para todo el equipo.')} />
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
