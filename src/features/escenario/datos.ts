@@ -9,6 +9,8 @@ export interface CancionEscenario {
   bpm: number | null
   momento: string | null
   letra: string
+  /** el tono que este integrante dejó guardado para la canción */
+  miTono: string | null
 }
 export interface Escenario {
   /** cuándo se bajó esta copia */
@@ -34,7 +36,7 @@ function guardarCopia(grupoId: string, e: Escenario) {
  * Baja el próximo servicio con la letra de cada canción y deja una copia en el dispositivo para
  * usarla sin conexión. Devuelve null si no hay servicio próximo; lanza si falla la red.
  */
-export async function cargarEscenario(grupoId: string): Promise<Escenario | null> {
+export async function cargarEscenario(grupoId: string, miMiembroId?: string): Promise<Escenario | null> {
   // Desde ayer: el culto del domingo sigue a la mano el lunes por la mañana (igual que Inicio y Servicios)
   const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
   const { data: srv, error } = await supabase.from('servicios').select('id, fecha, tipo').eq('grupo_id', grupoId).gte('fecha', desde).order('fecha').limit(1).maybeSingle()
@@ -48,6 +50,11 @@ export async function cargarEscenario(grupoId: string): Promise<Escenario | null
     ? await supabase.from('canciones').select('id, titulo, autor, tono_original, bpm, letra_chordpro').in('id', ids)
     : { data: [], error: null }
   if (e3) throw e3
+  // Mis tonos guardados; si falla (p. ej. aún sin permiso en la base) se usa el tono del servicio
+  const { data: tonos } = ids.length && miMiembroId
+    ? await supabase.from('cancion_tonos').select('cancion_id, tono').eq('miembro_id', miMiembroId).in('cancion_id', ids)
+    : { data: [] }
+  const mio = new Map(((tonos ?? []) as { cancion_id: string; tono: string }[]).map((t) => [t.cancion_id, t.tono]))
   const porId = new Map((cs ?? []).map((c) => [c.id as string, c]))
 
   const canciones: CancionEscenario[] = (items ?? []).flatMap((i) => {
@@ -56,10 +63,16 @@ export async function cargarEscenario(grupoId: string): Promise<Escenario | null
     return [{
       itemId: i.id as string, cancionId: c.id as string, titulo: c.titulo as string, autor: (c.autor as string | null) ?? null,
       tono: ((i.tono as string | null) ?? (c.tono_original as string | null)) ?? null, bpm: (c.bpm as number | null) ?? null,
-      momento: (i.momento as string | null) ?? null, letra: (c.letra_chordpro as string | null) ?? '',
+      momento: (i.momento as string | null) ?? null, letra: (c.letra_chordpro as string | null) ?? '', miTono: mio.get(c.id as string) ?? null,
     }]
   })
   const e: Escenario = { guardado: new Date().toISOString(), servicio: { id: srv.id as string, fecha: srv.fecha as string, tipo: srv.tipo as string }, canciones }
   guardarCopia(grupoId, e)
   return e
+}
+
+/** Guarda mi tono para una canción. Devuelve false si no se pudo (sin red o sin permiso); no es grave. */
+export async function guardarMiTono(cancionId: string, miMiembroId: string, tono: string): Promise<boolean> {
+  const { error } = await supabase.from('cancion_tonos').upsert({ cancion_id: cancionId, miembro_id: miMiembroId, tono }, { onConflict: 'cancion_id,miembro_id' })
+  return !error
 }

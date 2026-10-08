@@ -21,8 +21,8 @@ export default function Layout() {
 
   // Deja en el dispositivo el próximo servicio y sus letras para el modo escenario sin conexión
   useEffect(() => {
-    if (baja && grupoId) cargarEscenario(grupoId).catch(() => {})
-  }, [baja, grupoId])
+    if (baja && grupoId) cargarEscenario(grupoId, membresia?.id).catch(() => {})
+  }, [baja, grupoId, membresia?.id])
   const navigate = useNavigate()
   const [crear, setCrear] = useState(false)
   const ir = (ruta: string) => { setCrear(false); navigate(ruta) }

@@ -2,17 +2,25 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../../components/Icon'
 import { useAuth } from '../../hooks/authContext'
-import { transponerTono, usaBemoles } from '../../lib/chordpro'
+import { distancia, transponerTono, usaBemoles } from '../../lib/chordpro'
 import { fechaCorta, hora } from '../../lib/fechas'
 import LetraView from '../cancionero/LetraView'
-import { cargarEscenario, leerCopia, type Escenario as Datos } from './datos'
+import { cargarEscenario, guardarMiTono, leerCopia, type CancionEscenario, type Escenario as Datos } from './datos'
 
 const TAM_MIN = 16
 const TAM_MAX = 40
 
+/** Semitonos (-6 a +6) entre el tono del servicio y el que el integrante dejó guardado. */
+function pasosGuardados(c: CancionEscenario): number {
+  if (!c.tono || !c.miTono) return 0
+  const d = distancia(c.tono, c.miTono)
+  return d > 6 ? d - 12 : d
+}
+
 export default function Escenario() {
   const { membresia, rol } = useAuth()
   const grupoId = membresia?.grupo_id
+  const miembroId = membresia?.id
   const [datos, setDatos] = useState<Datos | null | undefined>(undefined)
   const [sinConexion, setSinConexion] = useState(false)
   const [i, setI] = useState(0)
@@ -28,10 +36,10 @@ export default function Escenario() {
     // Se muestra de inmediato la copia del dispositivo y se refresca si hay red
     const copia = leerCopia(grupoId)
     if (copia) setDatos(copia)
-    cargarEscenario(grupoId).then((d) => { if (vivo) { setDatos(d); setSinConexion(false) } })
+    cargarEscenario(grupoId, miembroId).then((d) => { if (vivo) { setDatos(d); setSinConexion(false) } })
       .catch(() => { if (vivo) { setSinConexion(true); setDatos((previo) => previo ?? null) } })
     return () => { vivo = false }
-  }, [grupoId])
+  }, [grupoId, miembroId])
 
   // Que la pantalla no se apague mientras se canta
   useEffect(() => {
@@ -75,12 +83,17 @@ export default function Escenario() {
   }
 
   const c = datos.canciones[Math.min(i, datos.canciones.length - 1)]!
-  const p = pasos[c.cancionId] ?? 0
+  const p = pasos[c.cancionId] ?? pasosGuardados(c)
   const tonoActual = c.tono ? transponerTono(c.tono, p) : null
   const bemoles = tonoActual ? usaBemoles(tonoActual) : false
   const hayAnterior = i > 0
   const haySiguiente = i < datos.canciones.length - 1
-  const mover = (d: number) => setPasos((m) => ({ ...m, [c.cancionId]: Math.max(-6, Math.min(6, (m[c.cancionId] ?? 0) + d)) }))
+  const mover = (d: number) => {
+    const nuevo = Math.max(-6, Math.min(6, p + d))
+    setPasos((m) => ({ ...m, [c.cancionId]: nuevo }))
+    // Se recuerda el tono para la próxima vez; si no hay red o permiso, la transposición sigue valiendo en esta sesión
+    if (c.tono && miembroId) void guardarMiTono(c.cancionId, miembroId, transponerTono(c.tono, nuevo))
+  }
   const meta = [c.autor, c.momento, c.bpm ? `${c.bpm} BPM` : null].filter(Boolean).join(' · ')
 
   return (
