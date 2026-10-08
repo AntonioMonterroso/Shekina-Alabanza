@@ -17,7 +17,7 @@ export function AccesoDenegado({ titulo }: { titulo: string }) {
 }
 
 /** Envuelve rutas: deja pasar solo a quien cumple el permiso (la seguridad real sigue siendo RLS). */
-export function Requiere({ permiso, titulo }: { permiso: 'verCancionero' | 'verServicios' | 'esLider'; titulo: string }) {
+export function Requiere({ permiso, titulo }: { permiso: 'verCancionero' | 'verServicios' | 'verTurnos' | 'esLider'; titulo: string }) {
   const { rol } = useAuth()
   return permisos(rol)[permiso] ? <Outlet /> : <AccesoDenegado titulo={titulo} />
 }

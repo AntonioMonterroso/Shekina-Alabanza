@@ -5,6 +5,7 @@ import { Requiere } from '../components/AccesoDenegado'
 import Cancionero from '../features/cancionero/Cancionero'
 import CancionDetalle from '../features/cancionero/CancionDetalle'
 import CancionForm from '../features/cancionero/CancionForm'
+import Turnos from '../features/turnos/Turnos'
 import Servicios from '../features/servicios/Servicios'
 import Inicio from '../features/inicio/Inicio'
 import Perfil from '../features/perfil/Perfil'
@@ -50,7 +51,9 @@ export default function App() {
                 <Route path=":id/editar" element={<CancionForm />} />
               </Route>
             </Route>
-            <Route path="turnos" element={pronto('Turnos', 'Quién toca cuándo, con reemplazos. Es el paso 7 del plan.')} />
+            <Route path="turnos" element={<Requiere permiso="verTurnos" titulo="Turnos no es para tu rol" />}>
+              <Route index element={<Turnos />} />
+            </Route>
             <Route path="ensayos" element={pronto('Ensayos', 'Asistencia, canciones a ensayar y guías. Es el paso 10 del plan.')} />
             <Route path="equipo" element={pronto('Equipo', 'Agregar integrantes, roles y cambio de contraseñas. Es el paso 11 del plan.')} />
             <Route path="escenario" element={pronto('Modo escenario', 'Letra y acordes en grande, con transposición. Es el paso 9 del plan.')} />

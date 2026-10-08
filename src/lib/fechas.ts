@@ -39,3 +39,10 @@ export function aInputLocal(iso: string): string {
   )
   return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`
 }
+
+/** "2026-10-11" (fecha de Guatemala) de un instante. */
+export const fechaGT = (iso: string) => aInputLocal(iso).slice(0, 10)
+/** Un "YYYY-MM-DD" como instante al mediodía de Guatemala, para formatear sin saltos de día. */
+export const mediodiaGT = (ymd: string) => new Date(`${ymd}T12:00:00-06:00`)
+export const hoyGT = () => fechaGT(new Date().toISOString())
+export const mesLargo = (d: Date | string = new Date()) => cap(f(d, { month: 'long' }))

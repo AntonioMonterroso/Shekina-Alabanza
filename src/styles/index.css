@@ -467,3 +467,38 @@ code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; background: var(-
 .add:hover { background: var(--soft); }
 .pick { display: flex; align-items: center; gap: 12px; padding: 10px 12px; min-height: 60px; border: 1.5px solid var(--line); border-radius: 18px; background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; text-align: left; width: 100%; transition: border-color 0.2s; }
 .pick:hover { border-color: var(--primary); }
+
+/* ---------- Turnos ---------- */
+.vista-seg { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); height: 50px; padding: 5px; border-radius: 18px; background: var(--surface); border: 1.5px solid var(--line); }
+.vista-seg .pill { position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc(50% - 5px); border-radius: 13px; background: var(--primary); transition: transform 0.45s cubic-bezier(0.3, 1.2, 0.4, 1); }
+.vista-seg .pill.r { transform: translateX(100%); }
+.vista-seg button { position: relative; border: 0; background: none; color: var(--ink); font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; border-radius: 13px; transition: color 0.3s; }
+.vista-seg button.on { color: var(--on-primary); }
+.tcard { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 24px; background: var(--surface); border: 1.5px solid var(--line); animation: rise 0.45s var(--ease) both; }
+.fecha-caja { width: 50px; height: 54px; border-radius: 15px; background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0; }
+.progreso { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.progreso i { display: block; height: 100%; border-radius: 3px; background: var(--primary); transition: width 0.5s cubic-bezier(0.3, 0, 0.2, 1); }
+.slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.slot { display: flex; align-items: center; gap: 10px; padding: 8px 10px; min-height: 56px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; text-align: left; transition: border-color 0.2s, transform 0.15s; }
+.slot:hover { border-color: var(--primary); }
+.slot:active { transform: scale(0.97); }
+.slot.ro { cursor: default; }
+.slot.ro:hover { border-color: var(--line); }
+.slot.ro:active { transform: none; }
+.slot.no { border-color: var(--alerta-line); background: var(--alerta-bg); }
+.slot.vacio, .slot.nuevo { border-style: dashed; background: transparent; }
+.st { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.st.ok { background: var(--primary); color: var(--on-primary); }
+.st.pend { background: var(--c-ambar-bg); color: var(--c-ambar-fg); }
+.st.no { background: var(--c-rosa-bg); color: var(--c-rosa-fg); }
+.st.vacio { background: var(--soft); color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; font-weight: 800; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.pillst { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 10px; font-size: 13px; font-weight: 800; }
+.linkbtn { border: 0; background: none; padding: 0 4px; min-height: 44px; font: inherit; font-size: 14px; font-weight: 800; color: var(--muted); cursor: pointer; }
+.avp { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+.pick.cur { border-color: var(--primary); background: var(--soft); }
+.dchip { min-height: 56px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; transition: background 0.2s, border-color 0.2s, color 0.2s; }
+.dchip small { font-size: 12px; font-weight: 700; opacity: 0.8; }
+.dchip b { font-size: 15px; font-weight: 800; }
+.dchip.on { background: var(--c-rosa-bg); border-color: var(--alerta-line); color: var(--c-rosa-fg); }
