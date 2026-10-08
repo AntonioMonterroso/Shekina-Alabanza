@@ -6,6 +6,7 @@ import { transponerTono, usaBemoles } from '../../lib/chordpro'
 import { permisos } from '../../lib/permisos'
 import { supabase } from '../../lib/supabase'
 import { infoFase } from './fases'
+import Guias from './Guias'
 import LetraView from './LetraView'
 import type { Cancion } from './useCanciones'
 
@@ -15,7 +16,7 @@ const urlSegura = (u: string | null) => (u && /^https?:\/\//i.test(u) ? u : null
 
 export default function CancionDetalle() {
   const { id } = useParams()
-  const { rol } = useAuth()
+  const { rol, membresia } = useAuth()
   const p = permisos(rol)
   const [c, setC] = useState<Completa | null | undefined>(undefined)
   const [pasos, setPasos] = useState(0)
@@ -78,6 +79,8 @@ export default function CancionDetalle() {
       <article className="mt-5 rounded-[22px] p-4" style={{ background: 'var(--surface)', border: '1.5px solid var(--line)' }}>
         <LetraView texto={c.letra_chordpro ?? ''} pasos={pasos} bemoles={bemoles} acordes={acordes} />
       </article>
+
+      <Guias cancionId={c.id} grupoId={membresia?.grupo_id} puedeEditar={p.esLider} />
     </div>
   )
 }

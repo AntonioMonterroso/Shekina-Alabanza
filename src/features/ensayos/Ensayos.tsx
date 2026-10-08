@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/authContext'
 import { useEquipo } from '../../hooks/useEquipo'
 import { diaNum, diaSemana, fechaCorta, fechaLarga, hora, iniciales, mesCorto } from '../../lib/fechas'
 import { permisos } from '../../lib/permisos'
+import Guias from '../cancionero/Guias'
 import HojaCancionEnsayo from './HojaCancionEnsayo'
 import HojaEnsayo from './HojaEnsayo'
 import { useEnsayos, type CancionEnsayo } from './useEnsayos'
@@ -140,6 +141,7 @@ export default function Ensayos() {
                         <Link to={`/cancionero/${c.cancion_id}`} className="ghost-link">Ver letra</Link>
                         {audio && <a href={audio} target="_blank" rel="noopener noreferrer" className="ghost-link"><Icon name="audio" size={18} strokeWidth={2} />Guía de audio</a>}
                       </div>
+                      <Guias cancionId={c.cancion_id} puedeEditar={false} compacto />
                     </div>
                   )
                 })}
