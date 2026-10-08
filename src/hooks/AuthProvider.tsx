@@ -1,24 +1,9 @@
 import type { Session } from '@supabase/supabase-js'
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Membresia, Modo, Perfil, Rol, Tema } from '../lib/tipos'
+import type { Membresia, Modo, Perfil, Tema } from '../lib/tipos'
+import { Ctx, type AuthCtx } from './authContext'
 
-interface AuthCtx {
-  cargando: boolean
-  session: Session | null
-  perfil: Perfil | null
-  membresias: Membresia[]
-  membresia: Membresia | null // grupo actual
-  rol: Rol | null
-  esLider: boolean
-  elegirGrupo: (grupoId: string) => void
-  cambiarTema: (t: Tema) => Promise<void>
-  cambiarModo: (m: Modo) => Promise<void>
-  recargar: () => Promise<void>
-  salir: () => Promise<void>
-}
-
-const Ctx = createContext<AuthCtx | null>(null)
 const LS_GRUPO = 'alabanza.grupo'
 const LS_TEMA = 'alabanza.tema'
 const LS_MODO = 'alabanza.modo'
@@ -33,7 +18,7 @@ const guardar = (k: string, v: string) => {
 const oscuroDelSistema = () => window.matchMedia('(prefers-color-scheme: dark)').matches
 
 /** Pone el tema (color) y el modo (claro/oscuro) en <html>. "auto" sigue al sistema. */
-export function aplicarApariencia(tema: Tema, modo: Modo) {
+function aplicarApariencia(tema: Tema, modo: Modo) {
   const oscuro = modo === 'oscuro' || (modo === 'auto' && oscuroDelSistema())
   const el = document.documentElement
   el.dataset.tema = tema
@@ -126,13 +111,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
-
-export function useAuth() {
-  const c = useContext(Ctx)
-  if (!c) throw new Error('useAuth fuera de AuthProvider')
-  return c
-}
-// Nombres del plan (paso 2): usePerfil / useGrupoActual / useRol
-export const usePerfil = () => useAuth().perfil
-export const useGrupoActual = () => useAuth().membresia?.grupo ?? null
-export const useRol = () => useAuth().rol

@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import Hoja from '../components/Hoja'
 import Icon, { type IconName } from '../components/Icon'
 import { ToastProvider } from '../components/Toast'
-import { useAuth } from '../hooks/AuthProvider'
+import { useAuth } from '../hooks/authContext'
 import { permisos } from '../lib/permisos'
 
 const Tab = ({ to, icono, texto, end }: { to: string; icono: IconName; texto: string; end?: boolean }) => (

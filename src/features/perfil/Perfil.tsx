@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import Icon from '../../components/Icon'
 import { useToast } from '../../components/Toast'
-import { useAuth } from '../../hooks/AuthProvider'
+import { useAuth } from '../../hooks/authContext'
 import { supabase } from '../../lib/supabase'
 import { ROL_LABEL, TEMAS, type Modo } from '../../lib/tipos'
 

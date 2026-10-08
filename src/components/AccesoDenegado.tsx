@@ -1,6 +1,6 @@
 import { Link, Outlet } from 'react-router-dom'
 import Icon from './Icon'
-import { useAuth } from '../hooks/AuthProvider'
+import { useAuth } from '../hooks/authContext'
 import { permisos } from '../lib/permisos'
 import { ROL_LABEL } from '../lib/tipos'
 

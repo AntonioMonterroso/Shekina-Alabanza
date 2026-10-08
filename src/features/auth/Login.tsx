@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../hooks/AuthProvider'
+import { useAuth } from '../../hooks/authContext'
 import { correoDeAcceso, esCorreo, normalizarUsuario, usuarioValido } from '../../lib/usuario'
 import { supabase, supabaseConfigurado } from '../../lib/supabase'
 

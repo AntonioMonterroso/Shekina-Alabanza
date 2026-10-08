@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useAuth } from '../../hooks/AuthProvider'
+import { useAuth } from '../../hooks/authContext'
 import { supabase } from '../../lib/supabase'
 
 // Se muestra al entrar con una contraseña temporal que dio un líder.

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Icon from '../../components/Icon'
-import { useAuth } from '../../hooks/AuthProvider'
+import { useAuth } from '../../hooks/authContext'
 import { transponerTono, usaBemoles } from '../../lib/chordpro'
 import { permisos } from '../../lib/permisos'
 import { supabase } from '../../lib/supabase'
