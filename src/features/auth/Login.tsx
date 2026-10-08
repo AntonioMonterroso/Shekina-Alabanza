@@ -57,8 +57,8 @@ export default function Login() {
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[460px] flex-col px-7 pt-[84px] pb-[34px]">
         <div
-          className="rise flex h-[68px] w-[68px] items-center justify-center rounded-[24px] bg-white"
-          style={{ boxShadow: '0 8px 22px -14px var(--ink)' }}
+          className="rise flex h-[68px] w-[68px] items-center justify-center rounded-[24px]"
+          style={{ background: 'var(--surface)', boxShadow: '0 8px 22px -14px var(--ink)' }}
         >
           <div className="eq" aria-hidden>
             <span style={{ background: 'var(--leaf)' }} />

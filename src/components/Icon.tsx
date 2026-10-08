@@ -17,6 +17,13 @@ const P: Record<string, string[]> = {
   mundo: ['M3.5 12h17M12 3.5c2.5 2.6 3.5 5.4 3.5 8.5s-1 5.9-3.5 8.5c-2.5-2.6-3.5-5.4-3.5-8.5s1-5.9 3.5-8.5z'],
   perfil: ['M4.5 20c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6'],
   proyeccion: ['M7 20h10M12 16v4'],
+  atras: ['M15 6l-6 6 6 6'],
+  candado: ['M8 11V8a4 4 0 0 1 8 0v3'],
+  editar: ['M4 20h4L19 9l-4-4L4 16z', 'M13.5 6.5l4 4'],
+  buscar: ['M20 20l-3.5-3.5'],
+  borrar: ['M4 7h16M10 11v6M14 11v6', 'M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12', 'M9 7V4h6v3'],
+  menos: ['M5 12h14'],
+  audio: ['M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2'],
 }
 
 export type IconName = keyof typeof P
@@ -33,6 +40,8 @@ export default function Icon({ name, size = 22, ...rest }: { name: IconName; siz
       {name === 'escenario' && <rect x="3" y="4" width="18" height="13" rx="2.5" />}
       {name === 'mundo' && <circle cx="12" cy="12" r="8.5" />}
       {name === 'perfil' && <circle cx="12" cy="8" r="4" />}
+      {name === 'candado' && <rect x="5" y="11" width="14" height="9.5" rx="2.5" />}
+      {name === 'buscar' && <circle cx="11" cy="11" r="6.5" />}
       {name === 'proyeccion' && <rect x="3" y="4" width="18" height="12" rx="2" />}
     </svg>
   )

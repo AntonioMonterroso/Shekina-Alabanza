@@ -10,10 +10,10 @@ import { ROL_LABEL } from '../../lib/tipos'
 import { useInicio } from './useInicio'
 
 const CHIPS: Record<string, [string, string]> = {
-  servicios: ['#D5ECE7', '#285F57'],
-  cancionero: ['#E6DDF5', '#533E87'],
-  turnos: ['#F7D6CF', '#93394B'],
-  ensayos: ['#FBE6CC', '#7A4E14'],
+  servicios: ['var(--c-verde-bg)', 'var(--c-verde-fg)'],
+  cancionero: ['var(--c-lila-bg)', 'var(--c-lila-fg)'],
+  turnos: ['var(--c-rosa-bg)', 'var(--c-rosa-fg)'],
+  ensayos: ['var(--c-ambar-bg)', 'var(--c-ambar-fg)'],
 }
 
 function Mosaico({ ruta, icono, titulo, sub, retraso }: { ruta: string; icono: IconName; titulo: string; sub: string; retraso: number }) {
@@ -64,8 +64,8 @@ export default function Inicio() {
             <h1 className="display m-0 text-[30px] leading-[1.1] font-semibold tracking-[-0.02em]">{saludo()}, {primerNombre}</h1>
           </div>
           <Link to={p.verEquipo ? '/equipo' : '/perfil'} aria-label={p.verEquipo ? 'Equipo y roles' : 'Tu perfil'} className="avatares">
-            <span className="av" style={{ background: 'var(--primary)', color: '#fff' }}>{iniciales(perfil?.nombre ?? 'TÚ')}</span>
-            {otros[0] && <span className="av" style={{ background: '#E6DDF5', color: '#533E87', marginLeft: -10 }}>{iniciales(otros[0].nombre)}</span>}
+            <span className="av" style={{ background: 'var(--primary)', color: 'var(--on-primary)' }}>{iniciales(perfil?.nombre ?? 'TÚ')}</span>
+            {otros[0] && <span className="av" style={{ background: 'var(--c-lila-bg)', color: 'var(--c-lila-fg)', marginLeft: -10 }}>{iniciales(otros[0].nombre)}</span>}
             {otros.length > 1 && <span className="av" style={{ background: 'var(--soft)', color: 'var(--ink)', marginLeft: -10, fontSize: 12 }}>+{otros.length - 1}</span>}
           </Link>
         </header>
@@ -173,7 +173,7 @@ export default function Inicio() {
           const activo = m.grupo_id === membresia.grupo_id
           return (
             <button key={m.id} type="button" className={'gopt' + (activo ? ' on' : '')} aria-pressed={activo} onClick={() => { elegirGrupo(m.grupo_id); setGrupos(false) }}>
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[15px] font-extrabold" style={{ background: activo ? 'var(--primary)' : 'var(--soft)', color: activo ? '#fff' : 'var(--ink)' }}>{iniciales(m.grupo.nombre)}</span>
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[15px] font-extrabold" style={{ background: activo ? 'var(--primary)' : 'var(--soft)', color: activo ? 'var(--on-primary)' : 'var(--ink)' }}>{iniciales(m.grupo.nombre)}</span>
               <span className="flex min-w-0 grow flex-col"><span className="text-base font-extrabold">{m.grupo.nombre}</span><span className="text-[13px]" style={{ color: 'var(--muted)' }}>{ROL_LABEL[m.rol]}{activo ? ` · ${d.equipo.length} integrantes` : ''}</span></span>
               {activo && <Icon name="check" size={20} strokeWidth={2.6} style={{ color: 'var(--primary)' }} />}
             </button>

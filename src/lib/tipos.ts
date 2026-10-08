@@ -1,5 +1,16 @@
 export type Rol = 'propietario' | 'lider' | 'musico' | 'voz' | 'sonido' | 'multimedia' | 'alumno'
-export type Tema = 'salvia' | 'rosa'
+export type Tema = 'salvia' | 'rosa' | 'cielo' | 'ambar' | 'lavanda' | 'turquesa'
+export type Modo = 'claro' | 'oscuro' | 'auto'
+export type Fase = 'nueva' | 'aprendiendo' | 'ensayada' | 'lista'
+
+export const TEMAS: { id: Tema; nombre: string; color: string }[] = [
+  { id: 'salvia', nombre: 'Salvia', color: '#3d6b4a' },
+  { id: 'rosa', nombre: 'Rosa', color: '#a3485a' },
+  { id: 'cielo', nombre: 'Cielo', color: '#2f6690' },
+  { id: 'ambar', nombre: 'Ámbar', color: '#9a6412' },
+  { id: 'lavanda', nombre: 'Lavanda', color: '#6b4fa3' },
+  { id: 'turquesa', nombre: 'Turquesa', color: '#1f7a78' },
+]
 
 export interface Perfil {
   id: string
@@ -7,6 +18,7 @@ export interface Perfil {
   nombre: string
   avatar_url: string | null
   tema: Tema
+  modo: Modo
   debe_cambiar_password: boolean
 }
 

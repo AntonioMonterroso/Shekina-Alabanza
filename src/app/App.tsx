@@ -1,6 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import CambiarPassword from '../features/auth/CambiarPassword'
 import Login from '../features/auth/Login'
+import { Requiere } from '../components/AccesoDenegado'
+import Cancionero from '../features/cancionero/Cancionero'
+import CancionDetalle from '../features/cancionero/CancionDetalle'
+import CancionForm from '../features/cancionero/CancionForm'
 import Inicio from '../features/inicio/Inicio'
 import Perfil from '../features/perfil/Perfil'
 import Proximamente from '../features/proximamente/Proximamente'
@@ -35,7 +39,14 @@ export default function App() {
             <Route index element={<Inicio />} />
             <Route path="perfil" element={<Perfil />} />
             <Route path="servicios" element={pronto('Servicios', 'Aquí se arma el orden del culto. Es el paso 6 del plan.')} />
-            <Route path="cancionero" element={pronto('Cancionero', 'Letras, acordes y fases de cada canción. Es el paso 5 del plan.')} />
+            <Route path="cancionero" element={<Requiere permiso="verCancionero" titulo="El cancionero no es para tu rol" />}>
+              <Route index element={<Cancionero />} />
+              <Route path=":id" element={<CancionDetalle />} />
+              <Route element={<Requiere permiso="esLider" titulo="Solo los líderes editan canciones" />}>
+                <Route path="nueva" element={<CancionForm />} />
+                <Route path=":id/editar" element={<CancionForm />} />
+              </Route>
+            </Route>
             <Route path="turnos" element={pronto('Turnos', 'Quién toca cuándo, con reemplazos. Es el paso 7 del plan.')} />
             <Route path="ensayos" element={pronto('Ensayos', 'Asistencia, canciones a ensayar y guías. Es el paso 10 del plan.')} />
             <Route path="equipo" element={pronto('Equipo', 'Agregar integrantes, roles y cambio de contraseñas. Es el paso 11 del plan.')} />
