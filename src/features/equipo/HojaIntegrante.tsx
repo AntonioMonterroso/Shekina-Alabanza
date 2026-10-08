@@ -10,7 +10,7 @@ interface Props {
   soyPropietario: boolean
   esYo: boolean
   onCerrar: () => void
-  onGuardar: (id: string, c: { rol?: RolAsignable; descripcion?: string | null; puestos?: string[] }) => Promise<string | null>
+  onGuardar: (id: string, c: { rol?: RolAsignable; descripcion?: string | null; puestos?: string[]; coordina_escuela?: boolean }) => Promise<string | null>
   onQuitar: (id: string) => Promise<string | null>
   onPassword: (id: string, password: string) => Promise<string | null>
 }
@@ -22,6 +22,9 @@ function Contenido({ m, puestosDisponibles, soyPropietario, esYo, onCerrar, onGu
   const [rol, setRol] = useState<Exclude<typeof m.rol, 'propietario'> | 'propietario'>(m.rol)
   const [descripcion, setDescripcion] = useState(m.descripcion ?? '')
   const [puestos, setPuestos] = useState(new Set(m.puestos))
+  const [coordina, setCoordina] = useState(m.coordinaEscuela)
+  // Un líder ya coordina la Escuela por serlo
+  const puedeCoordinar = !['propietario', 'lider', 'alumno', 'tutor'].includes(m.rol)
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [modo, setModo] = useState<'editar' | 'password' | 'quitar'>('editar')
@@ -30,7 +33,7 @@ function Contenido({ m, puestosDisponibles, soyPropietario, esYo, onCerrar, onGu
 
   async function guardar() {
     setGuardando(true)
-    const fallo = await onGuardar(m.id, { ...(intocable ? {} : { rol: rol as RolAsignable }), descripcion: descripcion.trim() || null, puestos: puestosDisponibles.filter((p) => puestos.has(p)).concat(m.puestos.filter((p) => !puestosDisponibles.includes(p) && puestos.has(p))) })
+    const fallo = await onGuardar(m.id, { ...(intocable ? {} : { rol: rol as RolAsignable }), ...(puedeCoordinar ? { coordina_escuela: coordina } : {}), descripcion: descripcion.trim() || null, puestos: puestosDisponibles.filter((p) => puestos.has(p)).concat(m.puestos.filter((p) => !puestosDisponibles.includes(p) && puestos.has(p))) })
     setGuardando(false)
     if (fallo) return setError(fallo)
     onCerrar()
@@ -100,6 +103,12 @@ function Contenido({ m, puestosDisponibles, soyPropietario, esYo, onCerrar, onGu
         </label>
       )}
       <div className="field"><input id="i-desc" type="text" placeholder=" " value={descripcion} maxLength={80} onChange={(e) => setDescripcion(e.target.value)} /><label htmlFor="i-desc">Descripción</label></div>
+      {puedeCoordinar && (
+        <div className="flex items-center gap-3 px-1">
+          <button type="button" role="switch" aria-checked={coordina} aria-label="Coordina la Escuela" className={'sw' + (coordina ? ' on' : '')} onClick={() => setCoordina(!coordina)} />
+          <span className="flex flex-col"><span className="text-[15px] font-extrabold">Coordina la Escuela</span><span className="text-[13px]" style={{ color: 'var(--muted)' }}>Arma clases e inscribe alumnos</span></span>
+        </div>
+      )}
       {puestosDisponibles.length > 0 && (
         <fieldset className="m-0 border-0 p-0">
           <legend className="mb-2 px-1 text-sm font-extrabold">Puestos que puede cubrir</legend>

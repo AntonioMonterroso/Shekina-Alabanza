@@ -12,6 +12,8 @@ import Inicio from '../features/inicio/Inicio'
 import Perfil from '../features/perfil/Perfil'
 import Propuestas from '../features/propuestas/Propuestas'
 import Ensayos from '../features/ensayos/Ensayos'
+import Clase from '../features/escuela/Clase'
+import Escuela from '../features/escuela/Escuela'
 import Equipo from '../features/equipo/Equipo'
 import Escenario from '../features/escenario/Escenario'
 import Pantalla from '../features/proyeccion/Pantalla'
@@ -68,6 +70,8 @@ export default function App() {
             <Route path="turnos" element={<Requiere permiso="verTurnos" titulo="Turnos no es para tu rol" />}>
               <Route index element={<Turnos />} />
             </Route>
+            <Route path="escuela" element={<Escuela />} />
+            <Route path="escuela/clase/:id" element={<Clase />} />
             <Route path="propuestas" element={<Requiere permiso="esLider" titulo="Solo los líderes ven las propuestas" />}>
               <Route index element={<Propuestas />} />
             </Route>

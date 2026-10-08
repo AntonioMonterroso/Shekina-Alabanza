@@ -6,6 +6,7 @@ import { useToast } from '../../components/Toast'
 import { useAuth } from '../../hooks/authContext'
 import { diaNum, diaSemana, iniciales, mesCorto, hora, saludo } from '../../lib/fechas'
 import { permisos } from '../../lib/permisos'
+import { useAccesoEscuela } from '../escuela/useAcceso'
 import { supabase } from '../../lib/supabase'
 import { ROL_LABEL } from '../../lib/tipos'
 import { useInicio } from './useInicio'
@@ -15,6 +16,7 @@ const CHIPS: Record<string, [string, string]> = {
   cancionero: ['var(--c-lila-bg)', 'var(--c-lila-fg)'],
   turnos: ['var(--c-rosa-bg)', 'var(--c-rosa-fg)'],
   ensayos: ['var(--c-ambar-bg)', 'var(--c-ambar-fg)'],
+  equipo: ['var(--c-azul-bg)', 'var(--c-azul-fg)'],
 }
 
 function Mosaico({ ruta, icono, titulo, sub, retraso }: { ruta: string; icono: IconName; titulo: string; sub: string; retraso: number }) {
@@ -30,6 +32,7 @@ function Mosaico({ ruta, icono, titulo, sub, retraso }: { ruta: string; icono: I
 export default function Inicio() {
   const { perfil, membresia, membresias, rol, elegirGrupo } = useAuth()
   const p = permisos(rol)
+  const escuela = useAccesoEscuela()
   const toast = useToast()
   const d = useInicio(membresia?.grupo_id, membresia?.id, p.esLider, p.verServicios)
   const [grupos, setGrupos] = useState(false)
@@ -129,12 +132,12 @@ export default function Inicio() {
           </section>
         )}
 
-        {p.esAlumno && (
-          <section className="rise turn" aria-label="Tu próxima clase" style={{ animationDelay: '90ms' }}>
-            <span className="eyebrow">Tu próxima clase</span>
-            <p className="m-0 text-[17px] font-extrabold">Aún no hay clases programadas</p>
-            <p className="m-0 text-sm" style={{ color: 'var(--muted)' }}>Cuando tu maestro agende una, aparecerá aquí con tu práctica de la semana.</p>
-          </section>
+        {p.esExterno && (
+          <Link to="/escuela" className="rise turn no-underline" aria-label="Ir a la Escuela" style={{ animationDelay: '90ms', color: 'var(--ink)' }}>
+            <span className="eyebrow">{escuela.esTutor ? 'Escuela · tus hijos' : escuela.ensena && !escuela.estudia ? 'Escuela · tus clases' : 'Tu práctica de la semana'}</span>
+            <p className="m-0 text-[17px] font-extrabold">{escuela.esTutor ? 'Mira cómo van con su práctica' : escuela.ensena && !escuela.estudia ? 'Pasa lista y deja la tarea de la semana' : 'Toca para ver lo que toca practicar y anotar tu práctica'}</p>
+            <span className="flex items-center gap-1 text-sm font-extrabold" style={{ color: 'var(--primary)' }}>Abrir la Escuela<Icon name="derecha" size={16} strokeWidth={2.4} /></span>
+          </Link>
         )}
 
         {p.esLider && d.sinCubrir > 0 && (
@@ -187,6 +190,7 @@ export default function Inicio() {
           {p.verCancionero && <Mosaico ruta="/cancionero" icono="cancionero" titulo="Cancionero" sub="Letras y acordes" retraso={260} />}
           {p.verTurnos && <Mosaico ruta="/turnos" icono="turnos" titulo="Turnos" sub="Quién toca cuándo" retraso={300} />}
           {p.verEnsayos && <Mosaico ruta="/ensayos" icono="ensayos" titulo="Ensayos" sub="Asistencia y repaso" retraso={340} />}
+          {escuela.verEscuela && <Mosaico ruta="/escuela" icono="equipo" titulo="Escuela" sub={escuela.coordina ? 'Clases y alumnos' : 'Formación musical'} retraso={380} />}
         </div>
 
         <nav className="rise scrollx" aria-label="Más módulos" style={{ animationDelay: '380ms' }}>

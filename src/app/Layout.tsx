@@ -6,6 +6,7 @@ import { ToastProvider } from '../components/Toast'
 import { useAuth } from '../hooks/authContext'
 import { cargarEscenario } from '../features/escenario/datos'
 import { permisos } from '../lib/permisos'
+import { useAccesoEscuela } from '../features/escuela/useAcceso'
 
 const Tab = ({ to, icono, texto, end }: { to: string; icono: IconName; texto: string; end?: boolean }) => (
   <NavLink to={to} end={end} className={({ isActive }) => 'tab' + (isActive ? ' on' : '')}>
@@ -16,6 +17,7 @@ const Tab = ({ to, icono, texto, end }: { to: string; icono: IconName; texto: st
 export default function Layout() {
   const { rol, membresia } = useAuth()
   const p = permisos(rol)
+  const escuela = useAccesoEscuela()
   const grupoId = membresia?.grupo_id
   const baja = p.verEscenario
 
@@ -35,10 +37,14 @@ export default function Layout() {
         <nav aria-label="Navegación principal" className="rise barra" style={{ animationDelay: '440ms' }}>
           <Tab to="/" end icono="inicio" texto="Inicio" />
           {p.verCancionero && <Tab to="/cancionero" icono="cancionero" texto="Cancionero" />}
-          <div className="flex flex-1 justify-center">
-            {p.esLider && <button type="button" className="fab" aria-label="Crear" onClick={() => setCrear(true)}><Icon name="mas" size={26} strokeWidth={2.4} /></button>}
-            {p.escenarioEnBarra && <NavLink to="/escenario" className="fab" aria-label="Abrir modo escenario"><Icon name="escenario" size={24} strokeWidth={2.2} /></NavLink>}
-          </div>
+          {/* Alumnos, maestros externos y tutores: solo Inicio, Escuela y Perfil */}
+          {p.esExterno && <Tab to="/escuela" icono="ensayos" texto="Escuela" />}
+          {p.esEquipo && (
+            <div className="flex flex-1 justify-center">
+              {p.esLider && <button type="button" className="fab" aria-label="Crear" onClick={() => setCrear(true)}><Icon name="mas" size={26} strokeWidth={2.4} /></button>}
+              {p.escenarioEnBarra && <NavLink to="/escenario" className="fab" aria-label="Abrir modo escenario"><Icon name="escenario" size={24} strokeWidth={2.2} /></NavLink>}
+            </div>
+          )}
           {p.verTurnos && <Tab to="/turnos" icono="turnos" texto="Turnos" />}
           {p.verEquipo ? <Tab to="/equipo" icono="equipo" texto="Equipo" /> : <Tab to="/perfil" icono="perfil" texto="Perfil" />}
         </nav>
@@ -49,6 +55,7 @@ export default function Layout() {
             <button type="button" className="opt" onClick={() => ir('/servicios')}><span className="chip" style={{ background: 'var(--c-verde-bg)', color: 'var(--c-verde-fg)' }}><Icon name="servicios" size={20} strokeWidth={2} /></span>Servicio</button>
             <button type="button" className="opt" onClick={() => ir('/cancionero')}><span className="chip" style={{ background: 'var(--c-lila-bg)', color: 'var(--c-lila-fg)' }}><Icon name="cancionero" size={20} strokeWidth={2} /></span>Canción</button>
             <button type="button" className="opt" onClick={() => ir('/ensayos')}><span className="chip" style={{ background: 'var(--c-ambar-bg)', color: 'var(--c-ambar-fg)' }}><Icon name="ensayos" size={20} strokeWidth={2} /></span>Ensayo</button>
+            {escuela.coordina && <button type="button" className="opt" onClick={() => ir('/escuela')}><span className="chip" style={{ background: 'var(--c-azul-bg)', color: 'var(--c-azul-fg)' }}><Icon name="equipo" size={20} strokeWidth={2} /></span>Clase</button>}
             <button type="button" className="opt" onClick={() => ir('/avisos')}><span className="chip" style={{ background: 'var(--c-rosa-bg)', color: 'var(--c-rosa-fg)' }}><Icon name="aviso" size={20} strokeWidth={2} /></span>Aviso al equipo</button>
           </div>
         </Hoja>

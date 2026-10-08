@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Rol } from '../../lib/tipos'
 
-export interface Integrante { id: string; userId: string; usuario: string; nombre: string; rol: Rol; descripcion: string | null; puestos: string[] }
+export interface Integrante { id: string; userId: string; usuario: string; nombre: string; rol: Rol; descripcion: string | null; puestos: string[]; coordinaEscuela: boolean }
 export type RolAsignable = Exclude<Rol, 'propietario'>
 
 /** Mensaje de error de una Edge Function (el cuerpo trae { error }). */
@@ -23,7 +23,7 @@ export function useEquipoAdmin(grupoId: string | undefined) {
   const cargar = useCallback(async () => {
     if (!grupoId) return setCargando(false)
     const [ms, pu] = await Promise.all([
-      supabase.from('miembros').select('id, user_id, rol, descripcion, puestos').eq('grupo_id', grupoId).eq('activo', true),
+      supabase.from('miembros').select('id, user_id, rol, descripcion, puestos, coordina_escuela').eq('grupo_id', grupoId).eq('activo', true),
       supabase.from('puestos').select('nombre').eq('grupo_id', grupoId).order('orden'),
     ])
     if (ms.error) { setError(true); setCargando(false); return }
@@ -33,7 +33,7 @@ export function useEquipoAdmin(grupoId: string | undefined) {
     const orden: Rol[] = ['propietario', 'lider', 'musico', 'voz', 'sonido', 'multimedia', 'alumno']
     setEquipo((ms.data ?? []).map((m) => ({
       id: m.id as string, userId: m.user_id as string, nombre: perfil.get(m.user_id as string)?.nombre ?? '—', usuario: perfil.get(m.user_id as string)?.usuario ?? '',
-      rol: m.rol as Rol, descripcion: (m.descripcion as string | null) ?? null, puestos: (m.puestos as string[] | null) ?? [],
+      rol: m.rol as Rol, descripcion: (m.descripcion as string | null) ?? null, puestos: (m.puestos as string[] | null) ?? [], coordinaEscuela: Boolean(m.coordina_escuela),
     })).sort((a, b) => orden.indexOf(a.rol) - orden.indexOf(b.rol) || a.nombre.localeCompare(b.nombre, 'es')))
     setPuestos((pu.data ?? []).map((p) => p.nombre as string))
     setError(false)
@@ -42,7 +42,7 @@ export function useEquipoAdmin(grupoId: string | undefined) {
 
   useEffect(() => { void cargar() }, [cargar])
 
-  const guardar = useCallback(async (id: string, cambios: { rol?: RolAsignable; descripcion?: string | null; puestos?: string[] }): Promise<string | null> => {
+  const guardar = useCallback(async (id: string, cambios: { rol?: RolAsignable; descripcion?: string | null; puestos?: string[]; coordina_escuela?: boolean }): Promise<string | null> => {
     const { error } = await supabase.from('miembros').update(cambios).eq('id', id)
     if (error) return error.message.includes('líder') ? 'Solo el propietario nombra o cambia líderes.' : 'No se pudo guardar. Intenta de nuevo.'
     await cargar()

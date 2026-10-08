@@ -34,6 +34,7 @@ export interface Membresia {
   grupo_id: string
   rol: Rol
   descripcion: string | null
+  coordina_escuela?: boolean
   grupo: Grupo
 }
 

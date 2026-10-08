@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCargandoDatos(true)
     const [p, m] = await Promise.all([
       supabase.from('perfiles').select('*').eq('id', uid).maybeSingle(),
-      supabase.from('miembros').select('id, grupo_id, rol, descripcion, grupo:grupos(id, nombre, slug, activo)')
+      supabase.from('miembros').select('id, grupo_id, rol, descripcion, coordina_escuela, grupo:grupos(id, nombre, slug, activo)')
         .eq('user_id', uid).eq('activo', true),
     ])
     const copia = leerCopia()
