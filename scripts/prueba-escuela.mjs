@@ -80,9 +80,49 @@ export default async function (db, como) {
   // Perfil de alumno: se ve a sí mismo; el maestro ve a sus alumnos; el músico raso a nadie
   await db.exec(`insert into escuela_alumnos (miembro_id, objetivo) values ('${A1}','Tocar en el grupo'), ('${A2}', null)`)
   assert.equal(await n(U.a1, 'select 1 from escuela_alumnos'), 1)
-  assert.equal(await n(U.maestro, 'select 1 from escuela_alumnos'), 2)
+  assert.equal(await n(U.maestro, 'select 1 from escuela_alumnos'), 0, 'el maestro externo no lee fichas')
   assert.equal(await n(U.tutor, 'select 1 from escuela_alumnos'), 1)
   assert.equal(await n(U.musico, 'select 1 from escuela_alumnos'), 0)
+
+  assert.equal(await n(U.coord, 'select 1 from escuela_alumnos'), 2, 'la coordinación sí')
+
+  // Un maestro del ministerio (músico) sí ve las fichas de SUS alumnos, y solo de ellos
+  await db.exec(`
+    insert into escuela_clases (id, grupo_id, curso_id, nombre, maestro_id) values
+      ('40000000-0000-0000-0000-000000000002','10000000-0000-0000-0000-000000000000','30000000-0000-0000-0000-000000000000','Guitarra 2','20000000-0000-0000-0000-000000000003');
+    insert into escuela_inscripciones (clase_id, alumno_id) values ('40000000-0000-0000-0000-000000000002','${A1}');`)
+  assert.equal(await n(U.musico, 'select 1 from escuela_alumnos'), 1, 'el maestro del ministerio ve a su alumno')
+
+  // Materiales: los lee todo el grupo; los sube la coordinación o quien enseña
+  const G = '10000000-0000-0000-0000-000000000000', CU = '30000000-0000-0000-0000-000000000000'
+  await como(db, U.coord, `insert into escuela_materiales (grupo_id, curso_id, titulo, url) values ('${G}','${CU}','Escalas','https://ejemplo.com/escalas')`)
+  await como(db, U.maestro, `insert into escuela_materiales (grupo_id, curso_id, titulo, storage_path) values ('${G}','${CU}','Partitura','${G}/${CU}/a.pdf')`)
+  await como(db, U.musico, `insert into escuela_materiales (grupo_id, curso_id, titulo, url) values ('${G}','${CU}','De guitarra','https://ejemplo.com/g')`)
+  await falla(U.a1, `insert into escuela_materiales (grupo_id, curso_id, titulo, url) values ('${G}','${CU}','Intruso','https://x.com')`)
+  await falla(U.tutor, `insert into escuela_materiales (grupo_id, curso_id, titulo, url) values ('${G}','${CU}','Intruso','https://x.com')`)
+  await falla(U.maestro, `insert into escuela_materiales (grupo_id, curso_id, titulo, url, storage_path) values ('${G}','${CU}','Ambos','https://x.com','${G}/${CU}/b.pdf')`) // o enlace o archivo
+  assert.equal(await n(U.a1, 'select 1 from escuela_materiales'), 3)
+  assert.equal(await n(U.tutor, 'select 1 from escuela_materiales'), 3)
+
+  // Archivos del bucket: leen los miembros; suben quienes enseñan
+  await como(db, U.maestro, `insert into storage.objects (bucket_id, name) values ('escuela','${G}/${CU}/a.pdf')`)
+  await falla(U.a1, `insert into storage.objects (bucket_id, name) values ('escuela','${G}/${CU}/z.pdf')`)
+  assert.equal(await n(U.a1, "select 1 from storage.objects where bucket_id = 'escuela'"), 1)
+  await db.exec(`insert into grupos (id, nombre, slug) values ('10000000-0000-0000-0000-0000000000ff','Otro','otro')`)
+  await db.exec(`insert into storage.objects (bucket_id, name) values ('escuela','10000000-0000-0000-0000-0000000000ff/x/otro.pdf')`)
+  assert.equal(await n(U.a1, "select 1 from storage.objects where bucket_id = 'escuela'"), 1, 'no ve archivos de otro grupo')
+
+  // Comentarios: los escribe quien gestiona la clase, a nombre propio; los leen el alumno y su tutor
+  const MAESTRO = '20000000-0000-0000-0000-000000000004', C2 = '40000000-0000-0000-0000-000000000000'
+  await como(db, U.maestro, `insert into escuela_comentarios (clase_id, alumno_id, autor_id, texto) values ('${C2}','${A1}','${MAESTRO}','Muy bien la escala, sube el tempo')`)
+  await falla(U.maestro, `insert into escuela_comentarios (clase_id, alumno_id, autor_id, texto) values ('${C2}','${A1}','20000000-0000-0000-0000-000000000001','Firmado por otro')`)
+  await falla(U.a1, `insert into escuela_comentarios (clase_id, alumno_id, autor_id, texto) values ('${C2}','${A1}','${A1}','Me felicito')`)
+  assert.equal(await n(U.a1, 'select 1 from escuela_comentarios'), 1)
+  assert.equal(await n(U.tutor, 'select 1 from escuela_comentarios'), 1)
+  assert.equal(await n(U.a2, 'select 1 from escuela_comentarios'), 0, 'otro alumno no lo ve')
+  assert.equal(await n(U.musico, 'select 1 from escuela_comentarios'), 0, 'ni un músico ajeno a la clase')
+  assert.equal((await como(db, U.a1, `delete from escuela_comentarios`)).affectedRows, 0, 'el alumno no borra')
+  assert.equal((await como(db, U.coord, `delete from escuela_comentarios`)).affectedRows, 1, 'la coordinación sí')
 
   // Cursos editables solo por coordinación; todos los del grupo los leen
   assert.equal(await n(U.a1, 'select 1 from escuela_cursos'), 1)

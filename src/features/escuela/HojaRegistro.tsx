@@ -14,12 +14,14 @@ interface Props {
   onGuardar: (practicaId: string, fecha: string, minutos: number, nota: string | null) => Promise<boolean>
   onBorrar: (registroId: string) => Promise<boolean>
   onCerrar: () => void
+  /** minutos con los que abre (por ejemplo, lo que marcó el temporizador) */
+  minutosIniciales?: number
 }
 
-function Contenido({ practica, dias, hoy, registros, onGuardar, onBorrar, onCerrar }: Props & { practica: Practica }) {
+function Contenido({ practica, dias, hoy, registros, minutosIniciales, onGuardar, onBorrar, onCerrar }: Props & { practica: Practica }) {
   const [fecha, setFecha] = useState(hoy)
   const previo = registros.find((r) => r.practica_id === practica.id && r.fecha === fecha)
-  const [minutos, setMinutos] = useState(String(previo?.minutos ?? practica.minutos_meta ?? 15))
+  const [minutos, setMinutos] = useState(String(minutosIniciales ?? previo?.minutos ?? practica.minutos_meta ?? 15))
   const [nota, setNota] = useState(previo?.nota ?? '')
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)

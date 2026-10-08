@@ -22,8 +22,11 @@ export async function baseConMigraciones() {
     create table storage.buckets (id text primary key, name text, public boolean);
     create table storage.objects (id uuid default gen_random_uuid(), bucket_id text, name text);
     alter table storage.objects enable row level security;
+    grant usage on schema storage to anon, authenticated;
+    grant select, insert, update, delete on storage.objects to authenticated;
     create function storage.foldername(n text) returns text[] language sql immutable as $$
       select (string_to_array(n, '/'))[1:greatest(cardinality(string_to_array(n, '/')) - 1, 0)] $$;
+    grant execute on function storage.foldername(text) to authenticated;
   `)
   const dir = 'supabase/migrations'
   for (const f of readdirSync(dir).filter((x) => x.endsWith('.sql')).sort()) {

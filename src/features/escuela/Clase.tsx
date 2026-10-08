@@ -10,12 +10,13 @@ import {
   borrarPractica, borrarSesion, cargarAsistencia, cargarClase, cargarCursos, cargarInscritos, cargarPracticas, cargarRegistros, cargarSesiones,
   crearSesion, desinscribir, estiloColor, guardarPractica, inscribir, marcarAsistencia, type Asistencia, type Clase as ClaseT, type Curso, type Practica, type Registro, type Sesion,
 } from './api'
+import Materiales from './Materiales'
 import { HojaAgregarAlumno, HojaAlumno, HojaAsistencia, HojaPractica } from './HojasClase'
 import { useAccesoEscuela } from './useAcceso'
 
 export default function Clase() {
   const { id } = useParams()
-  const { membresia } = useAuth()
+  const { membresia, rol } = useAuth()
   const acceso = useAccesoEscuela()
   const toast = useToast()
   const equipo = useEquipo(membresia?.grupo_id)
@@ -168,6 +169,9 @@ export default function Clase() {
           })}
         </section>
 
+        {/* Materiales del curso */}
+        <Materiales cursos={curso ? [curso] : []} puedeEditar={gestiona} grupoId={membresia?.grupo_id} miembroId={membresia?.id} />
+
         <section aria-label="Clases dadas" className="flex flex-col gap-2 pb-2">
           <div className="flex items-center justify-between px-1">
             <h2 className="display m-0 text-xl font-semibold">Asistencia</h2>
@@ -195,7 +199,7 @@ export default function Clase() {
         </>
       )}
       {acceso.coordina && <HojaAgregarAlumno abierta={agregando} candidatos={candidatos} onCerrar={() => setAgregando(false)} onInscribir={salvarInscripcion} />}
-      <HojaAlumno alumno={alumnoObjetivo} tutoresPosibles={equipo.filter((m) => m.rol === 'tutor')} nombreDe={nombreDe} puedeEditar={acceso.coordina} onCerrar={() => setAlumnoAbierto(null)} onQuitar={sacarAlumno} />
+      <HojaAlumno alumno={alumnoObjetivo} tutoresPosibles={equipo.filter((m) => m.rol === 'tutor')} nombreDe={nombreDe} puedeEditar={acceso.coordina} verFicha={rol !== 'maestro'} escribir={gestiona && membresia ? { claseId: clase.id, autorId: membresia.id, puedeBorrarTodos: acceso.coordina } : undefined} onCerrar={() => setAlumnoAbierto(null)} onQuitar={sacarAlumno} />
     </div>
   )
 }

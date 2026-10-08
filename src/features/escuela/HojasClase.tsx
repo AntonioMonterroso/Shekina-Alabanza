@@ -5,6 +5,7 @@ import Icon from '../../components/Icon'
 import type { Integrante } from '../../hooks/useEquipo'
 import { aInputLocal, desdeInputLocal, fechaCorta } from '../../lib/fechas'
 import { ROL_LABEL } from '../../lib/tipos'
+import Comentarios from './Comentarios'
 import { actualizarSesion, cargarFicha, guardarFicha, ponerTutor, quitarTutor, type Asistencia, type EstadoAsistencia, type Practica, type Sesion } from './api'
 
 const ESTADOS: [EstadoAsistencia, string][] = [['presente', 'Presente'], ['ausente', 'Ausente'], ['justificado', 'Justificado']]
@@ -26,17 +27,20 @@ function FormPractica({ practica, alumnos, semana, claseId, onCerrar, onGuardar,
   const [minutos, setMinutos] = useState(practica?.minutos_meta?.toString() ?? '15')
   const [para, setPara] = useState(practica?.alumno_id ?? '')
   const [enlace, setEnlace] = useState(practica?.enlace ?? '')
+  const [bpm, setBpm] = useState(practica?.bpm?.toString() ?? '')
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
 
   async function enviar(e: FormEvent) {
     e.preventDefault()
+    const tempo = bpm ? Number(bpm) : null
+    if (tempo !== null && !(Number.isInteger(tempo) && tempo >= 30 && tempo <= 240)) return setError('El tempo va de 30 a 240 BPM.')
     if (!titulo.trim()) return setError('Escribe qué deben practicar.')
     const m = minutos ? Number(minutos) : null
     if (m !== null && !(Number.isInteger(m) && m >= 1 && m <= 600)) return setError('Los minutos van de 1 a 600.')
     if (enlace.trim() && !/^https?:\/\//i.test(enlace.trim())) return setError('El enlace debe empezar con http:// o https://')
     setGuardando(true)
-    const ok = await onGuardar({ clase_id: claseId, alumno_id: para || null, semana, titulo: titulo.trim(), detalle: detalle.trim() || null, minutos_meta: m, enlace: enlace.trim() || null }, practica?.id)
+    const ok = await onGuardar({ clase_id: claseId, alumno_id: para || null, semana, titulo: titulo.trim(), detalle: detalle.trim() || null, minutos_meta: m, enlace: enlace.trim() || null, bpm: tempo }, practica?.id)
     setGuardando(false)
     if (!ok) return setError('No se pudo guardar. Intenta de nuevo.')
     onCerrar()
@@ -61,6 +65,7 @@ function FormPractica({ practica, alumnos, semana, claseId, onCerrar, onGuardar,
           <select value={para} onChange={(e) => setPara(e.target.value)}><option value="">Toda la clase</option>{alumnos.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select>
         </label>
       </div>
+      <div className="field"><input id="p-bpm" type="number" inputMode="numeric" placeholder=" " value={bpm} onChange={(e) => { setBpm(e.target.value); setError('') }} /><label htmlFor="p-bpm">Tempo sugerido, BPM (opcional)</label></div>
       <div className="field"><input id="p-enlace" type="url" inputMode="url" placeholder=" " value={enlace} onChange={(e) => { setEnlace(e.target.value); setError('') }} /><label htmlFor="p-enlace">Enlace de apoyo (video, audio…)</label></div>
       <span role="status" className="min-h-5 px-1 text-sm font-semibold" style={{ color: 'var(--danger)' }}>{error}</span>
       <button type="submit" className="cta" disabled={guardando}>{guardando ? <span className="spinner" aria-label="Guardando" /> : practica ? 'Guardar cambios' : 'Dejar práctica'}</button>
@@ -213,13 +218,17 @@ interface PropsAlumno {
   nombreDe: (id: string) => string
   /** solo la coordinación edita la ficha, los tutores y la inscripción */
   puedeEditar: boolean
+  /** el maestro externo no ve la ficha (nacimiento, meta, tutores) de los alumnos */
+  verFicha: boolean
+  /** si quien mira puede escribir comentarios a este alumno */
+  escribir?: { claseId: string; autorId: string; puedeBorrarTodos: boolean }
   onCerrar: () => void
   onQuitar: (alumnoId: string) => Promise<boolean>
 }
 
 const edad = (nac: string) => Math.floor((Date.now() - new Date(`${nac}T12:00:00Z`).getTime()) / (365.25 * 86_400_000))
 
-function ContenidoAlumno({ alumno, tutoresPosibles, nombreDe, puedeEditar, onCerrar, onQuitar }: Omit<PropsAlumno, 'alumno'> & { alumno: Integrante }) {
+function ContenidoAlumno({ alumno, tutoresPosibles, nombreDe, puedeEditar, verFicha, escribir, onCerrar, onQuitar }: Omit<PropsAlumno, 'alumno'> & { alumno: Integrante }) {
   const [nacimiento, setNacimiento] = useState('')
   const [objetivo, setObjetivo] = useState('')
   const [tutores, setTutores] = useState<string[]>([])
@@ -230,10 +239,11 @@ function ContenidoAlumno({ alumno, tutoresPosibles, nombreDe, puedeEditar, onCer
   const [guardando, setGuardando] = useState(false)
 
   useEffect(() => {
+    if (!verFicha) { setCargado(true); return }
     void cargarFicha(alumno.id).then(({ perfil, tutores: t }) => {
       setNacimiento(perfil?.nacimiento ?? ''); setObjetivo(perfil?.objetivo ?? ''); setTutores(t); setCargado(true)
     })
-  }, [alumno.id])
+  }, [alumno.id, verFicha])
 
   async function guardar() {
     setGuardando(true)
@@ -259,8 +269,10 @@ function ContenidoAlumno({ alumno, tutoresPosibles, nombreDe, puedeEditar, onCer
   return (
     <div className="flex flex-col gap-3">
       <h2 className="display m-0 mx-1 text-2xl font-semibold">{alumno.nombre}</h2>
-      <p className="m-0 mx-1 -mt-2 text-sm font-bold" style={{ color: 'var(--muted)' }}>{ROL_LABEL[alumno.rol]}{nacimiento ? ` · ${edad(nacimiento)} años${edad(nacimiento) < 18 ? ' · menor de edad' : ''}` : ''}</p>
-      {!cargado ? <div className="esqueleto h-20" /> : (
+      <p className="m-0 mx-1 -mt-2 text-sm font-bold" style={{ color: 'var(--muted)' }}>{verFicha ? ROL_LABEL[alumno.rol] : 'Alumno'}{nacimiento ? ` · ${edad(nacimiento)} años${edad(nacimiento) < 18 ? ' · menor de edad' : ''}` : ''}</p>
+      {!verFicha ? (
+        <p className="m-0 rounded-xl px-3 py-2 text-[13px]" style={{ background: 'var(--soft)', color: 'var(--muted)' }}>Por privacidad, la ficha del alumno (edad, meta y tutores) solo la ve la coordinación y los maestros del ministerio.</p>
+      ) : !cargado ? <div className="esqueleto h-20" /> : (
         <>
           {puedeEditar ? (
             <>
@@ -288,8 +300,12 @@ function ContenidoAlumno({ alumno, tutoresPosibles, nombreDe, puedeEditar, onCer
           </div>
         </>
       )}
+      <div className="flex flex-col gap-1.5">
+        <span className="px-1 text-sm font-extrabold">Comentarios</span>
+        <Comentarios alumnoId={alumno.id} claseId={escribir?.claseId} escribir={escribir} nombreDe={(i) => nombreDe(i ?? '')} vacio="Todavía no hay comentarios para este alumno." />
+      </div>
       <span role="status" className="min-h-5 px-1 text-sm font-semibold" style={{ color: 'var(--danger)' }}>{error}</span>
-      {puedeEditar ? (
+      {puedeEditar && verFicha ? (
         <>
           <button type="button" className="cta" disabled={guardando || !cargado} onClick={guardar}>{guardando ? <span className="spinner" aria-label="Guardando" /> : 'Guardar'}</button>
           <button type="button" className="undo self-center" style={{ color: 'var(--danger)' }} disabled={quitando} onClick={quitar}>Quitar de esta clase</button>

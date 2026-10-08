@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Icon from '../../components/Icon'
 import { useToast } from '../../components/Toast'
 import { useAuth } from '../../hooks/authContext'
 import { useEquipo } from '../../hooks/useEquipo'
 import { diaNum, fechaCorta, hoyGT, hora, mediodiaGT } from '../../lib/fechas'
-import { diasDeSemana, INICIAL_DIA, lunesDe } from '../../lib/semana'
+import { diasDeSemana, INICIAL_DIA, lunesDe, sumarDias } from '../../lib/semana'
 import { anotarPractica, borrarRegistro, cargarClases, cargarHijos, cargarPracticas, cargarRegistros, clasesDeAlumno, estiloColor, proximaSesion, cargarCursos, type Clase, type Curso, type Practica, type Registro, type Sesion } from './api'
+import Comentarios from './Comentarios'
 import HojaRegistro from './HojaRegistro'
+import Materiales from './Materiales'
 
 const urlSegura = (u: string | null) => (u && /^https?:\/\//i.test(u) ? u : null)
 
@@ -27,7 +30,8 @@ export default function MiPractica() {
   const [anotando, setAnotando] = useState<Practica | null>(null)
 
   const hoy = hoyGT()
-  const lunes = lunesDe(hoy)
+  const [atras, setAtras] = useState(0) // semanas hacia atrás
+  const lunes = lunesDe(sumarDias(hoy, -7 * atras))
   const semana = useMemo(() => diasDeSemana(lunes), [lunes])
   const nombreDe = (id: string | null) => equipo.find((m) => m.id === id)?.nombre ?? '—'
 
@@ -88,7 +92,11 @@ export default function MiPractica() {
         <>
           <section className="turn" aria-label="Tu semana">
             <div className="flex items-baseline justify-between">
-              <span className="eyebrow">Esta semana</span>
+              <span className="flex items-center gap-1">
+                <button type="button" className="iconbtn !h-9 !w-9" aria-label="Semana anterior" disabled={atras >= 12} onClick={() => setAtras((a) => a + 1)}><Icon name="atras" size={16} strokeWidth={2.4} /></button>
+                <span className="eyebrow min-w-[118px] text-center">{atras === 0 ? 'Esta semana' : atras === 1 ? 'Semana pasada' : `Semana del ${fechaCorta(mediodiaGT(lunes))}`}</span>
+                <button type="button" className="iconbtn !h-9 !w-9" aria-label="Semana siguiente" disabled={atras === 0} onClick={() => setAtras((a) => a - 1)}><Icon name="derecha" size={16} strokeWidth={2.4} /></button>
+              </span>
               <span className="text-sm font-extrabold">{total} min · {diasConPractica} {diasConPractica === 1 ? 'día' : 'días'}</span>
             </div>
             <div className="grid grid-cols-7 gap-1.5" role="img" aria-label={`Practicaste ${diasConPractica} de 7 días esta semana`}>
@@ -104,7 +112,7 @@ export default function MiPractica() {
             </div>
           </section>
 
-          {sesion && (
+          {sesion && atras === 0 && (
             <p className="m-0 flex items-center gap-2 px-1 text-sm" style={{ color: 'var(--muted)' }}>
               <Icon name="reloj" size={18} strokeWidth={2} /><span><b style={{ color: 'var(--ink)' }}>Próxima clase</b> · {fechaCorta(sesion.fecha)} · {hora(sesion.fecha)}{sesion.tema ? ` · ${sesion.tema}` : ''}</span>
             </p>
@@ -112,7 +120,7 @@ export default function MiPractica() {
 
           <h2 className="display m-0 px-1 pt-1 text-xl font-semibold">Lo que toca practicar</h2>
           {practicas.length === 0 ? (
-            <p className="m-0 rounded-2xl p-4 text-[15px]" style={{ background: 'var(--soft)', color: 'var(--muted)' }}>Tu maestro todavía no deja práctica para esta semana.</p>
+            <p className="m-0 rounded-2xl p-4 text-[15px]" style={{ background: 'var(--soft)', color: 'var(--muted)' }}>{atras === 0 ? 'Tu maestro todavía no deja práctica para esta semana.' : 'No había práctica asignada esa semana.'}</p>
           ) : practicas.map((pr) => {
             const clase = clases.find((c) => c.id === pr.clase_id)
             const curso = cursos.find((c) => c.id === clase?.curso_id)
@@ -133,14 +141,19 @@ export default function MiPractica() {
                 {pr.detalle && <p className="m-0 rounded-xl px-3 py-2 text-[15px] whitespace-pre-wrap" style={{ background: 'var(--soft)' }}>{pr.detalle}</p>}
                 {enlace && <a href={enlace} target="_blank" rel="noopener noreferrer" className="ghost-link self-start"><Icon name="audio" size={18} strokeWidth={2} />Material de apoyo</a>}
                 <div className="flex gap-2">
-                  <button type="button" className={hechoHoy ? 'confirmed' : 'cbtn yes'} onClick={() => setAnotando(pr)}>
-                    <Icon name="check" size={18} strokeWidth={2.4} />{hechoHoy ? `Hoy: ${hechoHoy.minutos} min` : 'Anotar práctica'}
+                  {atras === 0 && <Link to={`/escuela/practicar/${pr.id}${alumnoId && alumnoId !== membresia?.id ? `?a=${alumnoId}` : ''}`} className="cbtn yes no-underline"><Icon name="audio" size={18} strokeWidth={2.2} />Practicar ahora</Link>}
+                  <button type="button" className={hechoHoy && atras === 0 ? 'confirmed' : 'cbtn no'} style={hechoHoy && atras === 0 ? undefined : { border: '1.5px solid var(--line)' }} onClick={() => setAnotando(pr)}>
+                    {hechoHoy && atras === 0 ? <><Icon name="check" size={18} strokeWidth={2.4} />Hoy: {hechoHoy.minutos} min</> : 'Anotar'}
                   </button>
                 </div>
+                {pr.bpm && <small style={{ color: 'var(--muted)' }}>Tempo sugerido: {pr.bpm} BPM</small>}
                 {mios.length > 0 && <small style={{ color: 'var(--muted)' }}>Esta semana: {mios.reduce((a, r) => a + r.minutos, 0)} min en {mios.length} {mios.length === 1 ? 'día' : 'días'}</small>}
               </article>
             )
           })}
+
+          {alumnoId && <Comentarios alumnoId={alumnoId} nombreDe={(i) => nombreDe(i)} titulo="Mensajes de tus maestros" />}
+          <Materiales cursos={cursos.filter((c) => clases.some((x) => x.curso_id === c.id))} puedeEditar={false} />
 
           <h2 className="display m-0 px-1 pt-1 text-xl font-semibold">Tus clases</h2>
           {clases.map((c) => {

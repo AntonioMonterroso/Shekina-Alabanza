@@ -534,3 +534,6 @@ code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; background: var(-
 /* Pantalla del templo: la diapositiva entra suave (sin animación si el sistema lo pide) */
 @keyframes aparecer { from { opacity: 0; } }
 .pantalla-letra { animation: aparecer 0.35s ease both; }
+
+/* Botones dentro de las tarjetas oscuras del modo práctica: un tono más claro que la tarjeta */
+.esc-cuerpo section .esc-ib:not(.on) { background: #2f4136; }

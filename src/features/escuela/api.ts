@@ -6,7 +6,7 @@ export const estiloColor = (c: ColorCurso) => ({ background: `var(--c-${c}-bg)`,
 
 export interface Curso { id: string; nombre: string; descripcion: string | null; color: ColorCurso; orden: number; activo: boolean }
 export interface Clase { id: string; curso_id: string; nombre: string; tipo: 'grupal' | 'individual'; maestro_id: string | null; horario: string | null; lugar: string | null; activo: boolean }
-export interface Practica { id: string; clase_id: string; alumno_id: string | null; semana: string; titulo: string; detalle: string | null; minutos_meta: number | null; enlace: string | null }
+export interface Practica { id: string; clase_id: string; alumno_id: string | null; semana: string; titulo: string; detalle: string | null; minutos_meta: number | null; enlace: string | null; bpm: number | null }
 export interface Registro { id: string; practica_id: string; alumno_id: string; fecha: string; minutos: number; nota: string | null }
 export interface Sesion { id: string; clase_id: string; fecha: string; tema: string | null }
 export type EstadoAsistencia = 'presente' | 'ausente' | 'justificado'
@@ -14,7 +14,7 @@ export interface Asistencia { sesion_id: string; alumno_id: string; estado: Esta
 export interface PerfilAlumno { miembro_id: string; nacimiento: string | null; objetivo: string | null }
 
 const COLS_CLASE = 'id, curso_id, nombre, tipo, maestro_id, horario, lugar, activo'
-const COLS_PRACTICA = 'id, clase_id, alumno_id, semana, titulo, detalle, minutos_meta, enlace'
+const COLS_PRACTICA = 'id, clase_id, alumno_id, semana, titulo, detalle, minutos_meta, enlace, bpm'
 
 export async function cargarCursos(grupoId: string): Promise<Curso[]> {
   const { data } = await supabase.from('escuela_cursos').select('id, nombre, descripcion, color, orden, activo').eq('grupo_id', grupoId).order('orden').order('nombre')
@@ -178,5 +178,83 @@ export async function clasesDeAlumno(alumnoId: string): Promise<string[]> {
 
 export async function actualizarSesion(id: string, d: { fecha?: string; tema?: string | null }): Promise<boolean> {
   const { error } = await supabase.from('escuela_sesiones').update(d).eq('id', id)
+  return !error
+}
+
+export async function cargarPractica(id: string): Promise<Practica | null> {
+  const { data } = await supabase.from('escuela_practicas').select(COLS_PRACTICA).eq('id', id).maybeSingle()
+  return (data as Practica | null) ?? null
+}
+
+// ---------------- Materiales ----------------
+export interface Material { id: string; curso_id: string; titulo: string; url: string | null; storage_path: string | null }
+export const MAX_MB_MATERIAL = 25
+
+export async function cargarMateriales(cursoIds: string[]): Promise<Material[]> {
+  if (cursoIds.length === 0) return []
+  const { data } = await supabase.from('escuela_materiales').select('id, curso_id, titulo, url, storage_path').in('curso_id', cursoIds).order('created_at')
+  return (data ?? []) as Material[]
+}
+
+/** Enlaces temporales (1 hora) para abrir los archivos del bucket privado: path → url. */
+export async function urlsDeMateriales(paths: string[]): Promise<Record<string, string>> {
+  if (paths.length === 0) return {}
+  const { data } = await supabase.storage.from('escuela').createSignedUrls(paths, 3600)
+  const fuera: Record<string, string> = {}
+  for (const x of data ?? []) if (x.signedUrl && x.path) fuera[x.path] = x.signedUrl
+  return fuera
+}
+
+export async function agregarEnlace(grupoId: string, cursoId: string, titulo: string, url: string, autorId: string): Promise<boolean> {
+  const { error } = await supabase.from('escuela_materiales').insert({ grupo_id: grupoId, curso_id: cursoId, titulo, url, created_by: autorId })
+  return !error
+}
+
+export function validarMaterial(f: File): string | null {
+  const ok = f.type === 'application/pdf' || f.type.startsWith('image/') || f.type.startsWith('audio/') || f.type === 'video/mp4'
+  if (!ok) return 'Sube un PDF, una imagen, un audio o un video mp4.'
+  if (f.size > MAX_MB_MATERIAL * 1024 * 1024) return `El archivo pesa más de ${MAX_MB_MATERIAL} MB.`
+  return null
+}
+
+export async function subirMaterial(grupoId: string, cursoId: string, titulo: string, f: File, autorId: string): Promise<string | null> {
+  const mal = validarMaterial(f)
+  if (mal) return mal
+  const ext = (f.name.split('.').pop() ?? 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin'
+  const path = `${grupoId}/${cursoId}/${crypto.randomUUID()}.${ext}`
+  const { error } = await supabase.storage.from('escuela').upload(path, f, { contentType: f.type, upsert: false })
+  if (error) return 'No se pudo subir el archivo. Intenta de nuevo.'
+  const { error: e2 } = await supabase.from('escuela_materiales').insert({ grupo_id: grupoId, curso_id: cursoId, titulo, storage_path: path, created_by: autorId })
+  if (e2) {
+    await supabase.storage.from('escuela').remove([path]) // no deja archivos huérfanos
+    return 'No se pudo guardar el material. Intenta de nuevo.'
+  }
+  return null
+}
+
+export async function borrarMaterial(m: Material): Promise<boolean> {
+  const { error } = await supabase.from('escuela_materiales').delete().eq('id', m.id)
+  if (error) return false
+  if (m.storage_path) await supabase.storage.from('escuela').remove([m.storage_path])
+  return true
+}
+
+// ---------------- Comentarios del maestro ----------------
+export interface Comentario { id: string; clase_id: string; alumno_id: string; autor_id: string | null; texto: string; created_at: string }
+
+export async function cargarComentarios(alumnoId: string, claseId?: string): Promise<Comentario[]> {
+  let q = supabase.from('escuela_comentarios').select('id, clase_id, alumno_id, autor_id, texto, created_at').eq('alumno_id', alumnoId).order('created_at', { ascending: false }).limit(30)
+  if (claseId) q = q.eq('clase_id', claseId)
+  const { data } = await q
+  return (data ?? []) as Comentario[]
+}
+
+export async function crearComentario(claseId: string, alumnoId: string, autorId: string, texto: string): Promise<boolean> {
+  const { error } = await supabase.from('escuela_comentarios').insert({ clase_id: claseId, alumno_id: alumnoId, autor_id: autorId, texto })
+  return !error
+}
+
+export async function borrarComentario(id: string): Promise<boolean> {
+  const { error } = await supabase.from('escuela_comentarios').delete().eq('id', id)
   return !error
 }

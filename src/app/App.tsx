@@ -13,6 +13,7 @@ import Perfil from '../features/perfil/Perfil'
 import Propuestas from '../features/propuestas/Propuestas'
 import Ensayos from '../features/ensayos/Ensayos'
 import Clase from '../features/escuela/Clase'
+import Practicar from '../features/escuela/Practicar'
 import Escuela from '../features/escuela/Escuela'
 import Equipo from '../features/equipo/Equipo'
 import Escenario from '../features/escenario/Escenario'
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/p/:slug" element={<Publico />} />
           {/* Modo escenario: pantalla completa, sin barra inferior */}
           <Route element={<Protegida conBarra={false} />}>
+            <Route path="escuela/practicar/:id" element={<Practicar />} />
             <Route path="proyeccion/pantalla" element={<Requiere permiso="verProyeccion" titulo="La proyección no es para tu rol" />}>
               <Route index element={<Pantalla />} />
             </Route>

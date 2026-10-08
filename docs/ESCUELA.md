@@ -16,6 +16,8 @@ Decisiones del propietario:
 | Tutor (rol nuevo) | Solo lectura del avance de su hijo; puede anotar la práctica por él |
 | Coordinador | Marca `miembros.coordina_escuela` en cualquier integrante (o cualquier líder): arma cursos, clases, inscripciones |
 
+**Privacidad de menores:** el maestro externo (rol `maestro`) no lee la ficha del alumno (nacimiento, meta, tutores); el maestro del ministerio y la coordinación sí. Los comentarios solo los leen el alumno, su tutor y quien gestiona la clase.
+
 La seguridad vive en RLS (`20261010000009_escuela.sql`) y se prueba con `scripts/prueba-escuela.mjs`.
 
 ## Modelo
@@ -24,8 +26,8 @@ prácticas semanales (a toda la clase o a un alumno; pueden apuntar a una canci�
 Perfil de alumno (nacimiento, objetivo) y tutores (tutor ↔ alumno).
 
 ## Fases
-1. **Base** — cursos, clases, inscripciones, sesiones con asistencia, práctica semanal con check. *(esquema listo, falta la interfaz)*
-2. **Acompañamiento** — materiales, comentarios del maestro, modo práctica con temporizador y metrónomo.
+1. **Base** — cursos, clases, inscripciones, sesiones con asistencia, práctica semanal con check. *(hecha)*
+2. **Acompañamiento** — materiales por curso (enlaces y archivos), comentarios del maestro, modo práctica con temporizador y metrónomo, historial de semanas, tempo sugerido por práctica. *(hecha; migración 11)*
 3. **Crecimiento** — niveles/hitos, "listo para el equipo" (el líder pasa al alumno a músico), vista del tutor.
 4. **Extras** — grabaciones, recordatorios push (ya existen las notificaciones), afinador.
 
