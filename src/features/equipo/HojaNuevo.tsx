@@ -3,7 +3,7 @@ import Hoja from '../../components/Hoja'
 import { ROL_LABEL } from '../../lib/tipos'
 import { passwordTemporal, sugerirUsuario, type RolAsignable } from './useEquipoAdmin'
 
-export const ROLES: RolAsignable[] = ['musico', 'voz', 'sonido', 'multimedia', 'alumno', 'lider']
+export const ROLES: RolAsignable[] = ['musico', 'voz', 'sonido', 'multimedia', 'alumno', 'maestro', 'tutor', 'lider']
 
 interface Props {
   abierta: boolean

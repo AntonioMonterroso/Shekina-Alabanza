@@ -27,7 +27,7 @@ export async function quienLlama(req: Request, admin: SupabaseClient) {
   return error ? null : data.user
 }
 
-export const ROLES_ASIGNABLES = ['lider', 'musico', 'voz', 'sonido', 'multimedia', 'alumno'] as const
+export const ROLES_ASIGNABLES = ['lider', 'musico', 'voz', 'sonido', 'multimedia', 'alumno', 'maestro', 'tutor'] as const
 export type RolAsignable = (typeof ROLES_ASIGNABLES)[number]
 
 export const usuarioValido = (u: unknown): u is string => typeof u === 'string' && /^[a-z0-9._-]{3,30}$/.test(u)

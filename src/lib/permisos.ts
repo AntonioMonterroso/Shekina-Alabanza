@@ -4,16 +4,22 @@ import type { Rol } from './tipos'
 // La seguridad real vive en RLS; esto solo evita mostrar botones que no sirven.
 const es = (rol: Rol | null, ...roles: Rol[]) => (rol ? roles.includes(rol) : false)
 
-export const permisos = (rol: Rol | null) => ({
-  esLider: es(rol, 'propietario', 'lider'),
-  esAlumno: rol === 'alumno',
-  verOrdenDelServicio: !es(rol, 'alumno') && rol !== null,
-  verServicios: !es(rol, 'alumno') && rol !== null,
-  verCancionero: es(rol, 'propietario', 'lider', 'musico', 'voz'),
-  verTurnos: !es(rol, 'alumno') && rol !== null,
-  verEnsayos: !es(rol, 'alumno') && rol !== null,
-  verEquipo: !es(rol, 'alumno') && rol !== null,
-  verEscenario: es(rol, 'propietario', 'lider', 'musico', 'voz'),
-  escenarioEnBarra: es(rol, 'musico', 'voz'),
-  verProyeccion: es(rol, 'propietario', 'lider', 'multimedia'),
-})
+export const permisos = (rol: Rol | null) => {
+  // Equipo de alabanza: lo demás (alumno, maestro externo, tutor) solo ve la Escuela
+  const eq = es(rol, 'propietario', 'lider', 'musico', 'voz', 'sonido', 'multimedia')
+  return {
+    esLider: es(rol, 'propietario', 'lider'),
+    esAlumno: rol === 'alumno',
+    verOrdenDelServicio: eq,
+    verServicios: eq,
+    verCancionero: es(rol, 'propietario', 'lider', 'musico', 'voz'),
+    verTurnos: eq,
+    verEnsayos: eq,
+    verEquipo: eq,
+    verEscenario: es(rol, 'propietario', 'lider', 'musico', 'voz'),
+    escenarioEnBarra: es(rol, 'musico', 'voz'),
+    verProyeccion: es(rol, 'propietario', 'lider', 'multimedia'),
+    esEquipo: eq,
+    esExterno: es(rol, 'alumno', 'maestro', 'tutor'),
+  }
+}

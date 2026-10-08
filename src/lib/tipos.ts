@@ -1,4 +1,4 @@
-export type Rol = 'propietario' | 'lider' | 'musico' | 'voz' | 'sonido' | 'multimedia' | 'alumno'
+export type Rol = 'propietario' | 'lider' | 'musico' | 'voz' | 'sonido' | 'multimedia' | 'alumno' | 'maestro' | 'tutor'
 export type Tema = 'salvia' | 'rosa' | 'cielo' | 'ambar' | 'lavanda' | 'turquesa'
 export type Modo = 'claro' | 'oscuro' | 'auto'
 export type Fase = 'nueva' | 'aprendiendo' | 'ensayada' | 'lista'
@@ -45,4 +45,6 @@ export const ROL_LABEL: Record<Rol, string> = {
   sonido: 'Sonido',
   multimedia: 'Multimedia',
   alumno: 'Alumno',
+  maestro: 'Maestro',
+  tutor: 'Tutor',
 }

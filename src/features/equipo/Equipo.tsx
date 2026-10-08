@@ -18,6 +18,8 @@ const QUE_VE: Record<Rol, string> = {
   sonido: 'Ve el orden del servicio.',
   multimedia: 'Controla la pantalla del templo.',
   alumno: 'Solo su formación en Escuela.',
+  maestro: 'Enseña en la Escuela (sin ser del equipo).',
+  tutor: 'Ve el avance de su hijo en la Escuela.',
 }
 const COLOR: Record<Rol, [string, string]> = {
   propietario: ['var(--primary)', 'var(--on-primary)'],
@@ -27,6 +29,8 @@ const COLOR: Record<Rol, [string, string]> = {
   sonido: ['var(--c-azul-bg)', 'var(--c-azul-fg)'],
   multimedia: ['var(--c-ambar-bg)', 'var(--c-ambar-fg)'],
   alumno: ['var(--soft)', 'var(--muted)'],
+  maestro: ['var(--c-verde-bg)', 'var(--c-verde-fg)'],
+  tutor: ['var(--soft)', 'var(--muted)'],
 }
 
 export default function Equipo() {

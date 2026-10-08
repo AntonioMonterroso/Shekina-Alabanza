@@ -7,15 +7,8 @@ import { useAuth } from '../../hooks/authContext'
 import { TONOS } from '../../lib/chordpro'
 import { supabase } from '../../lib/supabase'
 import { borrarCancion, crearCancion, guardarCancion, type DatosCancion } from './api'
+import EditorLetra from './EditorLetra'
 import LetraView from './LetraView'
-
-const EJEMPLO = `[Verso 1]
-[D]Abre las [G]puertas, [D]Señor
-[Em]Entra en este [A]lugar
-
-[Coro]
-[G]Santo, [D]santo, [A]santo
-[Em]Digno es el [A]Cordero`
 
 const vacio = { titulo: '', autor: '', tono: '', bpm: '', minutos: '4', categoria: '', letra: '', audio: '' }
 
@@ -30,7 +23,7 @@ export default function CancionForm() {
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [borrar, setBorrar] = useState(false)
-  const [ver, setVer] = useState(false)
+  const [ver, setVer] = useState(true)
 
   useEffect(() => {
     if (!id) return
@@ -116,14 +109,7 @@ export default function CancionForm() {
 
         <div className="field"><input id="audio" type="url" inputMode="url" placeholder=" " value={f.audio} onChange={set('audio')} /><label htmlFor="audio">Enlace de audio de referencia</label></div>
 
-        <div className="flex flex-col gap-2">
-          <div className="flex items-end justify-between px-1">
-            <label htmlFor="letra" className="text-[15px] font-extrabold">Letra y acordes (ChordPro)</label>
-            {!f.letra && <button type="button" className="undo" style={{ height: 32, padding: '0 8px' }} onClick={() => setF((x) => ({ ...x, letra: EJEMPLO }))}>Usar ejemplo</button>}
-          </div>
-          <textarea id="letra" className="letra-editor" rows={14} spellCheck={false} value={f.letra} onChange={set('letra')} placeholder={'[D]Abre las [G]puertas\n\nUsa [Coro] o [Verso 1] solos en una línea para separar las partes.'} />
-          <p className="m-0 px-1 text-[13px]" style={{ color: 'var(--muted)' }}>Escribe el acorde entre corchetes justo antes de la sílaba: <code>[D]Abre las [G]puertas</code>. Una línea vacía separa estrofas.</p>
-        </div>
+        <EditorLetra valor={f.letra} tono={f.tono} onCambio={(letra) => { setF((x) => ({ ...x, letra })); setError('') }} />
 
         {f.letra.trim() && (
           <div className="flex flex-col gap-2">

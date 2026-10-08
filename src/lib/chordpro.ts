@@ -11,6 +11,16 @@ const RE_ACORDE_EN_TEXTO = /\[([A-G][#b]?(?:maj|min|dim|aug|sus|add|m|M)?\d*(?:(
 
 export const esAcorde = (s: string) => RE_ACORDE.test(s)
 
+const RE_SECCION = /^[[(]?\s*(intro|verso|estrofa|pre-?\s?coro|precoro|coro|estribillo|puente|interludio|instrumental|final|outro)\s*(\d+)?\s*[\])]?\s*:?\s*$/i
+
+/** "CORO:" → "Coro", "verso 2" → "Verso 2", "[Pre-coro]" → "Pre-coro". Null si la línea no es el nombre de una parte. */
+export function etiquetaDeSeccion(linea: string): string | null {
+  const m = linea.trim().match(RE_SECCION)
+  if (!m) return null
+  const nombre = m[1]!.toLowerCase().replace(/\s/g, '').replace(/^pre-?coro$/, 'pre-coro').replace(/^precoro$/, 'pre-coro')
+  return nombre.charAt(0).toUpperCase() + nombre.slice(1) + (m[2] ? ` ${m[2]}` : '')
+}
+
 // ---------- Lectura ----------
 export function parseLinea(texto: string): Linea {
   const out: Linea = []
@@ -71,6 +81,12 @@ export function parse(texto: string): Seccion[] {
       } else if ((nombre === 'comment' || nombre === 'c' || nombre === 'comment_italic' || nombre === 'ci') && valor) {
         abrir(valor, tipoDeEtiqueta(valor))
       } // title, key, tempo, etc.: metadatos, no se muestran en la letra
+      continue
+    }
+
+    const parte = etiquetaDeSeccion(t)
+    if (parte) {
+      abrir(parte, tipoDeEtiqueta(parte))
       continue
     }
 
