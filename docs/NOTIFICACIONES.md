@@ -19,7 +19,7 @@ En Supabase → Edge Functions → Secrets (o con `supabase secrets set`):
 - `VAPID_SUBJECT` = `mailto:tu-correo@ejemplo.com`
 - `APP_URL` = `https://antoniomonterroso.github.io/Shekina-Alabanza/`
 
-Desplegar (y volver a desplegar cada vez que cambie la función): `supabase functions deploy enviar-push --project-ref acdskhdbnnvijyekzuft`
+Desplegar (ver `docs/DESPLEGAR_FUNCIONES.md`, con una opción sin terminal; y volver a desplegar cada vez que cambie la función): `supabase functions deploy enviar-push --project-ref acdskhdbnnvijyekzuft`
 (Si ya habías desplegado `admin-crear-usuario`, vuelve a desplegarla para que acepte los roles maestro y tutor.)
 
 ## 4. Publicar la llave pública en la app
