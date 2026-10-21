@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Icon from '../../components/Icon'
-import { borrarGuia, listarGuias, mmss, PARTES_GUIA, subirGuia, urlDeGuia, MAX_MB, type Guia } from './guias'
+import { borrarGuia, listarGuias, mmss, PARTES_GUIA, subirGuia, urlDeGuia, MAX_MB, type Guia } from './guiasApi'
 
 interface Props {
   cancionId: string
