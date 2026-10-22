@@ -28,6 +28,11 @@ const P: Record<string, string[]> = {
   audio: ['M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2'],
   arriba: ['M6 15l6-6 6 6'],
   equis: ['M6 6l12 12M18 6L6 18'],
+  ajustes: ['M4 7h9M17 7h3M4 17h3M11 17h9'],
+  play: ['M7 5l12 7-12 7z'],
+  pausa: ['M8 5v14M16 5v14'],
+  nube: ['M7 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 8.5a4.25 4.25 0 0 1 .5 8.5H7z'],
+  descarga: ['M12 4v11M7 11l5 5 5-5M5 20h14'],
   reloj: ['M12 3a9 9 0 1 0 9 9', 'M12 7v5l3 2'],
   calendarioX: ['M3.5 10h17M8 3v4M16 3v4M9.5 13.5l5 5M14.5 13.5l-5 5'],
 }
@@ -47,6 +52,7 @@ export default function Icon({ name, size = 22, ...rest }: { name: IconName; siz
       {name === 'mundo' && <circle cx="12" cy="12" r="8.5" />}
       {name === 'perfil' && <circle cx="12" cy="8" r="4" />}
       {name === 'calendarioX' && <rect x="3.5" y="5" width="17" height="15.5" rx="3" />}
+      {name === 'ajustes' && (<><circle cx="15" cy="7" r="2.2" /><circle cx="9" cy="17" r="2.2" /></>)}
       {name === 'candado' && <rect x="5" y="11" width="14" height="9.5" rx="2.5" />}
       {name === 'buscar' && <circle cx="11" cy="11" r="6.5" />}
       {name === 'proyeccion' && <rect x="3" y="4" width="18" height="12" rx="2" />}

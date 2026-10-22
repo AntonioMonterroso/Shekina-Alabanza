@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/authContext'
 import { activarPush, desactivarPush, estadoPush, type EstadoPush } from '../../lib/push'
 import { supabase } from '../../lib/supabase'
 import { ROL_LABEL, TEMAS, type Modo } from '../../lib/tipos'
+import TarjetaOffline from './TarjetaOffline'
 
 const MODOS: { id: Modo; nombre: string }[] = [
   { id: 'claro', nombre: 'Claro' },
@@ -92,6 +93,8 @@ export default function Perfil() {
           )}
         </section>
       )}
+
+      <TarjetaOffline />
 
       <form onSubmit={cambiarPassword} className="order p-4" aria-label="Cambiar contraseña" noValidate>
         <h2 className="m-0 mb-3 text-[15px] font-extrabold">Cambiar contraseña</h2>

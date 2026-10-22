@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import EstadoCopia from '../../components/EstadoCopia'
 import Icon from '../../components/Icon'
 import { useToast } from '../../components/Toast'
 import { useAuth } from '../../hooks/authContext'
@@ -37,7 +38,15 @@ export default function Cancionero() {
   const nombreDe = (miembroId: string) => equipo.find((m) => m.id === miembroId)?.nombre ?? '?'
   const miParte = membresia?.descripcion
 
+  /** Los cambios (fase, pendientes, repertorio…) necesitan internet: avisa en vez de quedarse esperando */
+  const sinRed = () => {
+    if (navigator.onLine) return false
+    toast('Sin conexión: este cambio necesita internet')
+    return true
+  }
+
   async function avanzar(id: string, titulo: string) {
+    if (sinRed()) return
     const sig = await c.avanzar(id)
     if (!sig) return toast('No se pudo avanzar. Intenta de nuevo.')
     toast(`${titulo} pasó a ${infoFase(sig).nombre}`)
@@ -45,12 +54,14 @@ export default function Cancionero() {
   }
 
   async function publicar(id: string) {
+    if (sinRed()) return
     const v = await c.togglePublica(id)
     if (v === null) return toast('No se pudo cambiar. Intenta de nuevo.')
     toast(v ? 'Visible en el repertorio público' : 'Oculta del repertorio público')
   }
 
   async function yaMeLaSe(id: string, valor: boolean) {
+    if (sinRed()) return
     const ok = await c.marcarYaSe(id, valor)
     toast(!ok ? 'No se pudo guardar. Intenta de nuevo.' : valor ? 'El líder verá que ya te la sabes' : 'Marcada como pendiente')
   }
@@ -68,7 +79,9 @@ export default function Cancionero() {
           {p.esLider && <Link to="/cancionero/nueva" className="iconbtn prim" aria-label="Agregar canción"><Icon name="mas" size={22} strokeWidth={2.4} /></Link>}
         </header>
 
-        <div className="rise mt-5 flex flex-col gap-2 rounded-[20px] p-3.5" style={{ animationDelay: '90ms', background: 'var(--surface)', border: '1.5px solid var(--line)' }}>
+        <div className="rise mt-2"><EstadoCopia sinConexion={c.sinConexion} /></div>
+
+        <div className="rise mt-3 flex flex-col gap-2 rounded-[20px] p-3.5" style={{ animationDelay: '90ms', background: 'var(--surface)', border: '1.5px solid var(--line)' }}>
           <span className="flex justify-between text-[13px] font-extrabold" style={{ color: 'var(--muted)' }}><span>De nueva a lista para servicio</span><span>{listas === 1 ? '1 lista' : `${listas} listas`}</span></span>
           <div className="pipe" role="img" aria-label={FASES.map((f, i) => `${f.nombre}: ${conteo[i]}`).join(', ')}>
             {FASES.map((f, i) => conteo[i]! > 0 && <span key={f.id} style={{ flexGrow: conteo[i], background: f.barra, animationDelay: `${200 + i * 60}ms` }} />)}
@@ -135,7 +148,7 @@ export default function Cancionero() {
                         <span className="text-[13px] font-extrabold tracking-[0.05em] uppercase" style={{ color: 'var(--muted)' }}>Pendientes de {f.nombre}</span>
                         {checks.length === 0 && <span className="px-1 text-sm" style={{ color: 'var(--muted)' }}>Sin pendientes en esta fase.</span>}
                         {checks.map((x) => (
-                          <button key={x.id} type="button" role="checkbox" aria-checked={x.hecho} className={'pendiente' + (x.hecho ? ' on' : '')} onClick={() => c.togglePendiente(x.id)}>
+                          <button key={x.id} type="button" role="checkbox" aria-checked={x.hecho} className={'pendiente' + (x.hecho ? ' on' : '')} onClick={() => { if (!sinRed()) void c.togglePendiente(x.id) }}>
                             <span className="pbox"><Icon name="check" size={14} strokeWidth={3} /></span>
                             <span className="lbl">{x.texto}</span>
                           </button>

@@ -1,5 +1,6 @@
 import type { Session } from '@supabase/supabase-js'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { borrarTodo } from '../lib/offline/almacen'
 import { supabase } from '../lib/supabase'
 import type { Membresia, Modo, Perfil, Tema } from '../lib/tipos'
 import { Ctx, type AuthCtx } from './authContext'
@@ -126,6 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     recargar: cargarDatos,
     salir: async () => {
       try { localStorage.removeItem(LS_DATOS) } catch { /* nada que borrar */ }
+      await borrarTodo() // la copia sin conexión es de esta persona: no se queda en el teléfono
       await supabase.auth.signOut()
     },
   }

@@ -1,3 +1,5 @@
+import { leerAudio, leerAudiosDeCanciones } from '../../lib/offline/almacen'
+import { conTiempo } from '../../lib/offline/sincronizar'
 import { supabase } from '../../lib/supabase'
 
 export interface Guia { id: string; cancion_id: string; parte: string; storage_path: string; duracion_s: number | null }
@@ -7,12 +9,20 @@ export const PARTES_GUIA = ['Guía completa', 'Voz 1', 'Voz 2', 'Voz 3', 'Piano'
 
 export async function listarGuias(cancionIds: string[]): Promise<Guia[]> {
   if (cancionIds.length === 0) return []
-  const { data } = await supabase.from('guias').select('id, cancion_id, parte, storage_path, duracion_s').in('cancion_id', cancionIds).order('parte')
-  return (data ?? []) as Guia[]
+  // Sin conexión (o con señal muy mala) se usan las guías que ya se descargaron a este teléfono
+  const nube = navigator.onLine
+    ? await conTiempo(supabase.from('guias').select('id, cancion_id, parte, storage_path, duracion_s').in('cancion_id', cancionIds).order('parte'), 8000).catch(() => null)
+    : null
+  if (nube && !nube.error) return (nube.data ?? []) as Guia[]
+  return (await leerAudiosDeCanciones(cancionIds)).map((a) => ({ id: a.guia_id, cancion_id: a.cancion_id, parte: a.parte, storage_path: a.path, duracion_s: a.duracion_s }))
 }
 
 /** Enlace temporal (1 hora) para reproducir un audio del bucket privado. */
 export async function urlDeGuia(path: string): Promise<string | null> {
+  // Si el audio ya está en este teléfono se reproduce de ahí (sin gastar datos y sin internet)
+  const local = await leerAudio(path)
+  if (local) return URL.createObjectURL(local.blob)
+  if (!navigator.onLine) return null
   const { data, error } = await supabase.storage.from('guias').createSignedUrl(path, 3600)
   return error ? null : data.signedUrl
 }

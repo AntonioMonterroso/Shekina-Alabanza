@@ -1,29 +1,36 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import CambiarPassword from '../features/auth/CambiarPassword'
 import Login from '../features/auth/Login'
 import { Requiere } from '../components/AccesoDenegado'
-import Avisos from '../features/avisos/Avisos'
-import Cancionero from '../features/cancionero/Cancionero'
-import CancionDetalle from '../features/cancionero/CancionDetalle'
-import CancionForm from '../features/cancionero/CancionForm'
-import Turnos from '../features/turnos/Turnos'
-import Servicios from '../features/servicios/Servicios'
 import Inicio from '../features/inicio/Inicio'
 import Perfil from '../features/perfil/Perfil'
-import Propuestas from '../features/propuestas/Propuestas'
-import Ensayos from '../features/ensayos/Ensayos'
-import Clase from '../features/escuela/Clase'
-import Practicar from '../features/escuela/Practicar'
-import Escuela from '../features/escuela/Escuela'
-import Equipo from '../features/equipo/Equipo'
-import Escenario from '../features/escenario/Escenario'
-import Pantalla from '../features/proyeccion/Pantalla'
-import Proyeccion from '../features/proyeccion/Proyeccion'
-import Publico from '../features/publico/Publico'
 import { AuthProvider } from '../hooks/AuthProvider'
+import { SyncProvider } from '../hooks/SyncProvider'
 import { useAuth } from '../hooks/authContext'
 import { supabaseConfigurado } from '../lib/supabase'
 import Layout from './Layout'
+
+// Cada pantalla se baja al entrar en ella (la primera carga pesa menos). Todo queda guardado al instalar la app,
+// así que también abren sin internet.
+const Avisos = lazy(() => import('../features/avisos/Avisos'))
+const Cancionero = lazy(() => import('../features/cancionero/Cancionero'))
+const CancionDetalle = lazy(() => import('../features/cancionero/CancionDetalle'))
+const CancionForm = lazy(() => import('../features/cancionero/CancionForm'))
+const Turnos = lazy(() => import('../features/turnos/Turnos'))
+const Servicios = lazy(() => import('../features/servicios/Servicios'))
+const Propuestas = lazy(() => import('../features/propuestas/Propuestas'))
+const Ensayos = lazy(() => import('../features/ensayos/Ensayos'))
+const Clase = lazy(() => import('../features/escuela/Clase'))
+const Practicar = lazy(() => import('../features/escuela/Practicar'))
+const Escuela = lazy(() => import('../features/escuela/Escuela'))
+const Equipo = lazy(() => import('../features/equipo/Equipo'))
+const Escenario = lazy(() => import('../features/escenario/Escenario'))
+const Pantalla = lazy(() => import('../features/proyeccion/Pantalla'))
+const Proyeccion = lazy(() => import('../features/proyeccion/Proyeccion'))
+const Publico = lazy(() => import('../features/publico/Publico'))
+
+const Cargando = () => <div className="pantalla grid place-items-center"><span className="spinner" role="status" style={{ borderColor: 'var(--line)', borderTopColor: 'var(--primary)' }} aria-label="Cargando" /></div>
 
 function Protegida({ conBarra = true }: { conBarra?: boolean }) {
   const { cargando, session, perfil } = useAuth()
@@ -41,7 +48,9 @@ export default function App() {
           Falta .env.local con VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY
         </div>
       )}
+      <SyncProvider>
       <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+        <Suspense fallback={<Cargando />}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/p/:slug" element={<Publico />} />
@@ -90,7 +99,9 @@ export default function App() {
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
+      </SyncProvider>
     </AuthProvider>
   )
 }

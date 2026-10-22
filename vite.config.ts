@@ -34,7 +34,11 @@ export default defineConfig({
       workbox: {
         navigateFallback: `${base}index.html`,
         navigateFallbackDenylist: [new RegExp(`^${base}proyeccion`)],
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Lo esencial se guarda al instalar; de las tipografías solo los archivos latinos (lo demás, al usarse)
+        globPatterns: ['**/*.{js,css,html,svg,png}', '**/fraunces-latin-soft-normal-*.woff2', '**/nunito-latin-wght-normal-*.woff2'],
+        runtimeCaching: [
+          { urlPattern: ({ url }) => url.pathname.endsWith('.woff2'), handler: 'CacheFirst', options: { cacheName: 'fuentes', expiration: { maxEntries: 20, maxAgeSeconds: 365 * 24 * 3600 } } },
+        ],
         // Recibe las notificaciones push (public/push-sw.js)
         importScripts: ['push-sw.js'],
       },

@@ -1,7 +1,9 @@
 import { supabase } from '../../lib/supabase'
+import { guardarTono, kvLeer, leerCanciones, leerServicios, leerTonos } from '../../lib/offline/almacen'
 
 export interface CancionEscenario {
-  itemId: string
+  /** punto del servicio (null si se eligió del cancionero) */
+  itemId: string | null
   cancionId: string
   titulo: string
   autor: string | null
@@ -12,67 +14,59 @@ export interface CancionEscenario {
   /** el tono que este integrante dejó guardado para la canción */
   miTono: string | null
 }
+
 export interface Escenario {
-  /** cuándo se bajó esta copia */
-  guardado: string
-  servicio: { id: string; fecha: string; tipo: string }
+  /** cuándo se bajó la copia que se está usando (null si nunca) */
+  guardado: string | null
+  servicio: { id: string; fecha: string; tipo: string } | null
+  /** canciones del próximo servicio, en orden */
   canciones: CancionEscenario[]
-}
-
-const clave = (grupoId: string) => `shekina.escenario.${grupoId}`
-
-export function leerCopia(grupoId: string): Escenario | null {
-  try {
-    const crudo = localStorage.getItem(clave(grupoId))
-    return crudo ? (JSON.parse(crudo) as Escenario) : null
-  } catch { return null }
-}
-
-function guardarCopia(grupoId: string, e: Escenario) {
-  try { localStorage.setItem(clave(grupoId), JSON.stringify(e)) } catch { /* sin espacio o modo privado */ }
+  /** todo el cancionero bajado, por si se quiere cantar algo que no está en el servicio */
+  catalogo: CancionEscenario[]
 }
 
 /**
- * Baja el próximo servicio con la letra de cada canción y deja una copia en el dispositivo para
- * usarla sin conexión. Devuelve null si no hay servicio próximo; lanza si falla la red.
+ * Arma el modo escenario desde la copia guardada en el dispositivo (la sincronización la mantiene al día).
+ * Así abre al instante y funciona igual con o sin internet.
  */
-export async function cargarEscenario(grupoId: string, miMiembroId?: string): Promise<Escenario | null> {
-  // Desde ayer: el culto del domingo sigue a la mano el lunes por la mañana (igual que Inicio y Servicios)
-  const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
-  const { data: srv, error } = await supabase.from('servicios').select('id, fecha, tipo').eq('grupo_id', grupoId).gte('fecha', desde).order('fecha').limit(1).maybeSingle()
-  if (error) throw error
-  if (!srv) return null
+export async function cargarEscenario(grupoId: string, miMiembroId: string | undefined): Promise<Escenario> {
+  const [canciones, servicios, tonos, guardado] = await Promise.all([
+    leerCanciones(grupoId), leerServicios(grupoId), leerTonos(grupoId), kvLeer<string>(`ultimaSync:${grupoId}`),
+  ])
+  const mio = new Map(tonos.filter((t) => !miMiembroId || t.miembro_id === miMiembroId).map((t) => [t.cancion_id, t.tono]))
+  const porId = new Map(canciones.map((c) => [c.id, c]))
 
-  const { data: items, error: e2 } = await supabase.from('servicio_items').select('id, orden, tono, momento, cancion_id').eq('servicio_id', srv.id).eq('tipo', 'cancion').order('orden')
-  if (e2) throw e2
-  const ids = [...new Set((items ?? []).map((i) => i.cancion_id as string).filter(Boolean))]
-  const { data: cs, error: e3 } = ids.length
-    ? await supabase.from('canciones').select('id, titulo, autor, tono_original, bpm, letra_chordpro').in('id', ids)
-    : { data: [], error: null }
-  if (e3) throw e3
-  // Mis tonos guardados; si falla (p. ej. aún sin permiso en la base) se usa el tono del servicio
-  const { data: tonos } = ids.length && miMiembroId
-    ? await supabase.from('cancion_tonos').select('cancion_id, tono').eq('miembro_id', miMiembroId).in('cancion_id', ids)
-    : { data: [] }
-  const mio = new Map(((tonos ?? []) as { cancion_id: string; tono: string }[]).map((t) => [t.cancion_id, t.tono]))
-  const porId = new Map((cs ?? []).map((c) => [c.id as string, c]))
-
-  const canciones: CancionEscenario[] = (items ?? []).flatMap((i) => {
-    const c = porId.get(i.cancion_id as string)
-    if (!c) return []
-    return [{
-      itemId: i.id as string, cancionId: c.id as string, titulo: c.titulo as string, autor: (c.autor as string | null) ?? null,
-      tono: ((i.tono as string | null) ?? (c.tono_original as string | null)) ?? null, bpm: (c.bpm as number | null) ?? null,
-      momento: (i.momento as string | null) ?? null, letra: (c.letra_chordpro as string | null) ?? '', miTono: mio.get(c.id as string) ?? null,
-    }]
+  const aEscena = (c: (typeof canciones)[number], extra?: { itemId: string; tono: string | null; momento: string | null }): CancionEscenario => ({
+    itemId: extra?.itemId ?? null, cancionId: c.id, titulo: c.titulo, autor: c.autor,
+    tono: extra?.tono ?? c.tono_original, bpm: c.bpm, momento: extra?.momento ?? null, letra: c.letra_chordpro ?? '', miTono: mio.get(c.id) ?? null,
   })
-  const e: Escenario = { guardado: new Date().toISOString(), servicio: { id: srv.id as string, fecha: srv.fecha as string, tipo: srv.tipo as string }, canciones }
-  guardarCopia(grupoId, e)
-  return e
+
+  // El próximo servicio: desde ayer (el domingo sigue a la mano el lunes por la mañana)
+  const desde = Date.now() - 24 * 3600 * 1000
+  const proximo = servicios.find((s) => new Date(s.fecha).getTime() >= desde) ?? null
+  const delServicio = (proximo?.items ?? [])
+    .filter((i) => i.tipo === 'cancion' && i.cancion_id)
+    .sort((a, b) => a.orden - b.orden)
+    .flatMap((i) => {
+      const c = porId.get(i.cancion_id!)
+      return c ? [aEscena(c, { itemId: i.id, tono: i.tono, momento: i.momento })] : []
+    })
+
+  return {
+    guardado: guardado ?? null,
+    servicio: proximo ? { id: proximo.id, fecha: proximo.fecha, tipo: proximo.tipo } : null,
+    canciones: delServicio,
+    catalogo: canciones.map((c) => aEscena(c)).sort((a, b) => a.titulo.localeCompare(b.titulo, 'es')),
+  }
 }
 
-/** Guarda mi tono para una canción. Devuelve false si no se pudo (sin red o sin permiso); no es grave. */
-export async function guardarMiTono(cancionId: string, miMiembroId: string, tono: string): Promise<boolean> {
+/**
+ * Guarda mi tono para una canción. Primero en el dispositivo (así se recuerda aunque no haya internet)
+ * y luego en la nube; si falla, queda pendiente y la sincronización lo sube después.
+ */
+export async function guardarMiTono(grupoId: string, cancionId: string, miMiembroId: string, tono: string): Promise<void> {
+  await guardarTono({ cancion_id: cancionId, miembro_id: miMiembroId, grupo_id: grupoId, tono, pendiente: true }).catch(() => {})
+  if (!navigator.onLine) return
   const { error } = await supabase.from('cancion_tonos').upsert({ cancion_id: cancionId, miembro_id: miMiembroId, tono }, { onConflict: 'cancion_id,miembro_id' })
-  return !error
+  if (!error) await guardarTono({ cancion_id: cancionId, miembro_id: miMiembroId, grupo_id: grupoId, tono, pendiente: false }).catch(() => {})
 }

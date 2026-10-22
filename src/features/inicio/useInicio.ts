@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { finDeMes } from '../../lib/fechas'
 import { avisarPush } from '../../lib/push'
+import { leerCanciones, leerServicios } from '../../lib/offline/almacen'
+import { conTiempo } from '../../lib/offline/sincronizar'
 import { supabase } from '../../lib/supabase'
 import type { Rol } from '../../lib/tipos'
 
@@ -12,6 +14,8 @@ export interface MiTurno { id: string; puesto: string; estado: 'pendiente' | 'co
 interface Datos {
   cargando: boolean
   error: boolean
+  /** no hubo conexión: el servicio y su orden salen de la copia guardada en el teléfono */
+  sinConexion: boolean
   servicio: ServicioProximo | null
   orden: FilaOrden[]
   miTurno: MiTurno | null
@@ -19,7 +23,26 @@ interface Datos {
   equipo: IntegranteMini[]
 }
 
-const vacio: Datos = { cargando: true, error: false, servicio: null, orden: [], miTurno: null, sinCubrir: 0, equipo: [] }
+const vacio: Datos = { cargando: true, error: false, sinConexion: false, servicio: null, orden: [], miTurno: null, sinCubrir: 0, equipo: [] }
+
+/** Próximo servicio y su orden, desde la copia del teléfono (para cuando no hay internet). */
+async function desdeCopia(grupoId: string): Promise<{ servicio: ServicioProximo | null; orden: FilaOrden[] }> {
+  const [servicios, canciones] = await Promise.all([leerServicios(grupoId), leerCanciones(grupoId)])
+  const desde = Date.now() - 24 * 3600 * 1000
+  const s = servicios.find((x) => new Date(x.fecha).getTime() >= desde)
+  if (!s) return { servicio: null, orden: [] }
+  const porId = new Map(canciones.map((c) => [c.id, c]))
+  const orden = [...s.items].sort((a, b) => a.orden - b.orden).map((it, i) => {
+    const c = it.cancion_id ? porId.get(it.cancion_id) : undefined
+    return {
+      n: i + 1,
+      titulo: (it.tipo === 'cancion' ? c?.titulo : it.parte_titulo) ?? '—',
+      detalle: [it.momento, it.tipo === 'parte' ? it.responsable : null].filter(Boolean).join(' · '),
+      tono: it.tono ?? c?.tono_original ?? null,
+    }
+  })
+  return { servicio: { id: s.id, fecha: s.fecha, tipo: s.tipo, llegada: s.llegada }, orden }
+}
 
 export function useInicio(grupoId: string | undefined, miMiembroId: string | undefined, esLider: boolean, verServicios: boolean) {
   const [d, setD] = useState<Datos>(vacio)
@@ -39,9 +62,14 @@ export function useInicio(grupoId: string | undefined, miMiembroId: string | und
 
     // Próximo servicio (o el de ayer, mientras no pase un día)
     const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
-    const { data: srv, error } = await supabase.from('servicios').select('id, fecha, tipo, llegada')
-      .eq('grupo_id', grupoId).gte('fecha', desde).order('fecha').limit(1).maybeSingle()
-    if (error) return setD({ ...vacio, cargando: false, error: true, equipo })
+    const res = await conTiempo(supabase.from('servicios').select('id, fecha, tipo, llegada')
+      .eq('grupo_id', grupoId).gte('fecha', desde).order('fecha').limit(1).maybeSingle(), 10_000).catch(() => null)
+    if (!res || res.error) {
+      // Sin conexión: se muestra lo guardado en el teléfono en vez de decir que no hay servicios
+      const copia = await desdeCopia(grupoId)
+      return setD({ ...vacio, cargando: false, error: true, sinConexion: true, ...copia, equipo })
+    }
+    const srv = res.data
     if (!srv) return setD({ ...vacio, cargando: false, equipo })
     const servicio = srv as ServicioProximo
 
@@ -77,7 +105,7 @@ export function useInicio(grupoId: string | undefined, miMiembroId: string | und
 
     const t = turno.data as { id: string; estado: MiTurno['estado']; puesto: { nombre: string } | { nombre: string }[] | null } | null
     const puesto = Array.isArray(t?.puesto) ? t?.puesto[0]?.nombre : t?.puesto?.nombre
-    setD({ cargando: false, error: false, servicio, orden, miTurno: t ? { id: t.id, estado: t.estado, puesto: puesto ?? 'Tu puesto' } : null, sinCubrir: sin, equipo })
+    setD({ cargando: false, error: false, sinConexion: false, servicio, orden, miTurno: t ? { id: t.id, estado: t.estado, puesto: puesto ?? 'Tu puesto' } : null, sinCubrir: sin, equipo })
   }, [grupoId, miMiembroId, esLider, verServicios])
 
   useEffect(() => { void cargar() }, [cargar])

@@ -95,7 +95,7 @@ export default function Inicio() {
             {d.cargando ? (
               <div className="flex items-center gap-3.5"><span className="esqueleto h-[58px] w-[54px]" /><span className="esqueleto h-12 flex-1" /></div>
             ) : !d.servicio ? (
-              <div><span className="eyebrow">Próximo servicio</span><p className="m-0 mt-1 text-[17px] font-extrabold">Todavía no hay servicios programados</p></div>
+              <div><span className="eyebrow">Próximo servicio</span><p className="m-0 mt-1 text-[17px] font-extrabold">{d.sinConexion ? 'Sin conexión y sin copia guardada' : 'Todavía no hay servicios programados'}</p>{d.sinConexion && <p className="m-0 mt-1 text-sm" style={{ color: 'var(--muted)' }}>Abre la app con internet una vez para guardar el servicio en este teléfono.</p>}</div>
             ) : (
               <>
                 <div className="flex items-center gap-3.5">
@@ -108,7 +108,7 @@ export default function Inicio() {
                     <span className="eyebrow">{d.miTurno ? 'Tu turno' : 'Próximo servicio'}</span>
                     <span className="text-[19px] font-extrabold">{d.miTurno ? `${d.miTurno.puesto} · ${d.servicio.tipo}` : d.servicio.tipo}</span>
                     <span className="text-sm" style={{ color: 'var(--muted)' }}>
-                      {d.miTurno ? (d.servicio.llegada ? `Llegada ${d.servicio.llegada}` : hora(d.servicio.fecha)) : `${hora(d.servicio.fecha)} · Sin turno para ti`}
+                      {d.miTurno ? (d.servicio.llegada ? `Llegada ${d.servicio.llegada}` : hora(d.servicio.fecha)) : d.sinConexion ? `${hora(d.servicio.fecha)} · Sin conexión: tu turno se ve con internet` : `${hora(d.servicio.fecha)} · Sin turno para ti`}
                     </span>
                   </span>
                 </div>

@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import Hoja from '../components/Hoja'
 import Icon, { type IconName } from '../components/Icon'
 import { ToastProvider } from '../components/Toast'
 import { useAuth } from '../hooks/authContext'
-import { cargarEscenario } from '../features/escenario/datos'
+import AvisoConexion from '../components/AvisoConexion'
 import { permisos } from '../lib/permisos'
 import { useAccesoEscuela } from '../features/escuela/useAcceso'
 
@@ -15,22 +15,16 @@ const Tab = ({ to, icono, texto, end }: { to: string; icono: IconName; texto: st
 )
 
 export default function Layout() {
-  const { rol, membresia } = useAuth()
+  const { rol } = useAuth()
   const p = permisos(rol)
   const escuela = useAccesoEscuela()
-  const grupoId = membresia?.grupo_id
-  const baja = p.verEscenario
-
-  // Deja en el dispositivo el próximo servicio y sus letras para el modo escenario sin conexión
-  useEffect(() => {
-    if (baja && grupoId) cargarEscenario(grupoId, membresia?.id).catch(() => {})
-  }, [baja, grupoId, membresia?.id])
   const navigate = useNavigate()
   const [crear, setCrear] = useState(false)
   const ir = (ruta: string) => { setCrear(false); navigate(ruta) }
 
   return (
     <ToastProvider>
+      <AvisoConexion />
       <div className="pantalla app-shell">
         <div className="app-scroll"><Outlet /></div>
 

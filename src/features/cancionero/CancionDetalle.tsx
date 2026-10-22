@@ -4,6 +4,10 @@ import Icon from '../../components/Icon'
 import { useAuth } from '../../hooks/authContext'
 import { transponerTono, usaBemoles } from '../../lib/chordpro'
 import { permisos } from '../../lib/permisos'
+import EstadoCopia from '../../components/EstadoCopia'
+import { useSync } from '../../hooks/syncContext'
+import { leerCancion } from '../../lib/offline/almacen'
+import { conTiempo } from '../../lib/offline/sincronizar'
 import { supabase } from '../../lib/supabase'
 import { infoFase } from './fases'
 import Guias from './Guias'
@@ -22,11 +26,24 @@ export default function CancionDetalle() {
   const [pasos, setPasos] = useState(0)
   const [acordes, setAcordes] = useState(rol !== 'voz') // Voz entra con acordes ocultos
 
+  const { version } = useSync()
+  useEffect(() => { setC(undefined) }, [id]) // al pasar a otra canción no se muestra la anterior
+  const [sinConexion, setSinConexion] = useState(false)
+
   useEffect(() => {
     let vivo = true
-    supabase.from('canciones').select('*').eq('id', id!).maybeSingle().then(({ data }) => { if (vivo) setC((data as Completa | null) ?? null) })
+    // 1) La copia guardada en el teléfono, al instante; 2) la nube, para ver cambios recientes
+    void leerCancion(id!).then((l) => { if (vivo && l) setC((previa) => previa ?? (l as unknown as Completa)) })
+    conTiempo(supabase.from('canciones').select('*').eq('id', id!).maybeSingle(), 12_000)
+      .then(({ data, error }) => {
+        if (!vivo) return
+        if (error) throw error
+        setC((data as Completa | null) ?? null) // la nube respondió: si no hay fila, la canción ya no existe o no es visible
+        setSinConexion(false)
+      })
+      .catch(() => { if (vivo) { setSinConexion(true); setC((previa) => (previa === undefined ? null : previa)) } })
     return () => { vivo = false }
-  }, [id])
+  }, [id, version])
 
   if (c === undefined) return <div className="px-5 pt-[54px]"><div className="esqueleto" style={{ height: 160, background: 'var(--surface)' }} /></div>
   if (c === null) {
@@ -55,6 +72,8 @@ export default function CancionDetalle() {
         </div>
         {p.esLider && <Link to={`/cancionero/${c.id}/editar`} className="iconbtn" aria-label="Editar canción"><Icon name="editar" size={20} strokeWidth={2} /></Link>}
       </header>
+
+      <div className="mt-2"><EstadoCopia sinConexion={sinConexion} /></div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2.5">
         <span className="ppill" style={{ background: f.bg, color: f.fg }}>{f.nombre}</span>

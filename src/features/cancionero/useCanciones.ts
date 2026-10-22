@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useSync } from '../../hooks/syncContext'
+import { leerCanciones } from '../../lib/offline/almacen'
+import { conTiempo } from '../../lib/offline/sincronizar'
 import { supabase } from '../../lib/supabase'
 import type { Fase } from '../../lib/tipos'
 import { sembrarPendientes } from './api'
@@ -26,21 +29,31 @@ interface Estado {
   pendientes: Pendiente[]
   dominio: Dominio[]
   ultima: Record<string, string>
+  /** no se pudo hablar con la nube: se muestra la copia guardada en este teléfono */
+  sinConexion: boolean
 }
-const inicial: Estado = { cargando: true, error: false, canciones: [], pendientes: [], dominio: [], ultima: {} }
+const inicial: Estado = { cargando: true, error: false, canciones: [], pendientes: [], dominio: [], ultima: {}, sinConexion: false }
 
 export function useCanciones(grupoId: string | undefined, miMiembroId: string | undefined) {
   const [e, setE] = useState<Estado>(inicial)
+  const { version } = useSync()
 
   const cargar = useCallback(async () => {
     if (!grupoId) return setE({ ...inicial, cargando: false })
-    const [c, p, d, u] = await Promise.all([
+    // 1) Lo guardado en el teléfono, al instante (así abre rápido y también sin internet)
+    const copia = await leerCanciones(grupoId)
+    if (copia.length) setE((x) => (x.canciones.length ? x : { ...inicial, cargando: false, canciones: copia as unknown as Cancion[], sinConexion: false }))
+    // 2) Lo de la nube; si falla (sin señal) se queda lo guardado
+    const nube = await conTiempo(Promise.all([
       supabase.from('canciones').select('id, titulo, autor, tono_original, bpm, categoria, fase, publica, created_at, updated_at').eq('grupo_id', grupoId).order('titulo'),
       supabase.from('cancion_pendientes').select('id, cancion_id, fase, texto, hecho, orden').order('orden'),
       supabase.from('cancion_dominio').select('cancion_id, miembro_id, ya_la_se'),
       supabase.from('v_ultima_vez').select('cancion_id, ultima_fecha').eq('grupo_id', grupoId),
-    ])
-    if (c.error) return setE({ ...inicial, cargando: false, error: true })
+    ]), 12_000).catch(() => null)
+    if (!nube || nube[0].error) {
+      return setE((x) => (copia.length || x.canciones.length ? { ...x, cargando: false, error: false, sinConexion: true } : { ...inicial, cargando: false, error: true }))
+    }
+    const [c, p, d, u] = nube
     const canciones = (c.data ?? []) as Cancion[]
     const ids = new Set(canciones.map((x) => x.id))
     setE({
@@ -51,8 +64,9 @@ export function useCanciones(grupoId: string | undefined, miMiembroId: string | 
       pendientes: ((p.data ?? []) as Pendiente[]).filter((x) => ids.has(x.cancion_id)),
       dominio: ((d.data ?? []) as Dominio[]).filter((x) => ids.has(x.cancion_id)),
       ultima: Object.fromEntries(((u.data ?? []) as { cancion_id: string; ultima_fecha: string }[]).map((x) => [x.cancion_id, x.ultima_fecha])),
+      sinConexion: false,
     })
-  }, [grupoId])
+  }, [grupoId, version])
 
   useEffect(() => { void cargar() }, [cargar])
 

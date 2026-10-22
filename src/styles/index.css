@@ -234,8 +234,8 @@
   --color-card: var(--card);
   --color-soft: var(--soft);
   --color-surface: var(--surface);
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-sans: 'Nunito', system-ui, sans-serif;
+  --font-display: 'Fraunces Variable', 'Fraunces', Georgia, serif;
+  --font-sans: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
 }
 
 html, body, #root { height: 100%; }
@@ -243,13 +243,13 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Nunito', system-ui, sans-serif;
+  font-family: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
 * { box-sizing: border-box; }
 a { color: var(--primary); }
-.display { font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; }
+.display { font-family: 'Fraunces Variable', 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; }
 
 /* Pantalla completa en iOS: 100dvh + safe areas */
 .pantalla {
@@ -503,37 +503,70 @@ code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; background: var(-
 .dchip b { font-size: 15px; font-weight: 800; }
 .dchip.on { background: var(--c-rosa-bg); border-color: var(--alerta-line); color: var(--c-rosa-fg); }
 
-/* Modo escenario: siempre oscuro, sin importar el tema del usuario */
-.esc { --escena-muted: #93a898; position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--escena-bg); color: var(--escena-fg); z-index: 30; }
-.esc .spinner { margin: auto; }
-.esc-head { flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; padding: max(16px, env(safe-area-inset-top)) 16px 12px; }
-.esc-eyebrow { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--escena-muted); }
-.esc-live { width: 8px; height: 8px; border-radius: 50%; background: var(--escena-chord); animation: pulso 1.6s infinite; }
-.esc-titulo { font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 22px; font-weight: 600; }
-.esc-tono { flex-shrink: 0; padding: 6px 10px; border-radius: 12px; background: var(--escena-panel); font-size: 13px; font-weight: 800; color: var(--escena-chord); }
-.esc-tools { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
-.esc-ib { height: 44px; min-width: 44px; padding: 0 10px; border: 0; border-radius: 14px; background: var(--escena-panel); color: var(--escena-fg); display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; text-decoration: none; font: inherit; font-size: 14px; font-weight: 800; flex-shrink: 0; }
-.esc-ib.on { background: var(--escena-chord); color: var(--escena-bg); }
+/* Modo escenario: usa el color y el modo (claro/oscuro) que eligió el usuario.
+   La pantalla del templo (proyección) sigue siendo siempre oscura y no depende de esto. */
+.esc {
+  --escena-bg: var(--bg); --escena-fg: var(--ink); --escena-chord: var(--primary); --escena-panel: var(--surface); --escena-muted: var(--muted);
+  position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); z-index: 30;
+}
+.esc .spinner { margin: auto; border-color: var(--line); border-top-color: var(--primary); }
+.esc-head { flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: max(14px, env(safe-area-inset-top)) 14px 10px; }
+.esc-info { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 1px; }
+.esc-eyebrow { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.esc-live { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); animation: pulso 1.6s infinite; }
+.esc-info .esc-titulo { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.esc-titulo { font-family: 'Fraunces Variable', 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 22px; font-weight: 600; line-height: 1.15; }
+.esc-tono { flex-shrink: 0; padding: 6px 10px; border-radius: 12px; background: var(--card); font-size: 13px; font-weight: 800; color: var(--primary); }
+.esc-ib { height: 46px; min-width: 46px; padding: 0 12px; border: 1.5px solid var(--line); border-radius: 15px; background: var(--surface); color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 6px; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; text-decoration: none; flex-shrink: 0; }
+.esc-ib:active { transform: scale(0.96); }
+.esc-ib.on { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
 .esc-ib:disabled { opacity: 0.35; cursor: default; }
-.esc-grp { display: flex; align-items: center; background: var(--escena-panel); border-radius: 14px; flex-shrink: 0; }
-.esc-grp .esc-ib { background: transparent; }
-.esc-val { min-width: 34px; text-align: center; font-size: 14px; font-weight: 800; }
-.esc-aviso { align-self: flex-start; padding: 5px 10px; border-radius: 10px; background: var(--escena-panel); font-size: 12px; font-weight: 700; color: #ebc27e; }
-.esc-cuerpo { flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 4px 20px 24px; overscroll-behavior: contain; }
+.esc-grp { display: flex; align-items: center; background: var(--surface); border: 1.5px solid var(--line); border-radius: 15px; flex-shrink: 0; }
+.esc-grp .esc-ib { background: transparent; border: 0; }
+.esc-val { min-width: 36px; text-align: center; font-size: 15px; font-weight: 800; }
+.esc-aviso { margin: 0 14px 6px; align-self: flex-start; padding: 5px 10px; border-radius: 10px; background: var(--c-ambar-bg); font-size: 12px; font-weight: 800; color: var(--c-ambar-fg); }
+.esc-cuerpo { flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 8px 20px 24px; overscroll-behavior: contain; touch-action: pan-y; }
 .esc .letra { font-size: inherit; line-height: 1.35; }
-.esc .letra-seccion.coro { border-left-color: var(--escena-chord); }
-.esc .letra-etiqueta { background: transparent; color: var(--escena-muted); padding-left: 0; }
-.esc .acorde { color: var(--escena-chord); }
-.esc-pie { flex-shrink: 0; display: flex; gap: 10px; padding: 8px 16px max(16px, env(safe-area-inset-bottom)); }
-.esc-nav { flex: 1; height: 64px; border: 0; border-radius: 20px; background: var(--escena-panel); color: var(--escena-fg); display: flex; align-items: center; gap: 10px; padding: 0 14px; cursor: pointer; text-align: left; min-width: 0; font: inherit; }
+.esc .letra-seccion.coro { border-left-color: var(--primary); }
+.esc .letra-etiqueta { background: transparent; color: var(--muted); padding-left: 0; }
+.esc .acorde { color: var(--primary); font-weight: 800; }
+/* controles: una sola fila que se parte en dos si el teléfono es angosto */
+/* controles: cuadrícula de 2 × 2 con botones grandes; en pantallas anchas, una sola fila */
+.esc-controles { flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px 14px 4px; }
+.esc-controles > .esc-ib { width: 100%; }
+.esc-controles .esc-grp { justify-content: space-between; }
+.esc-controles .esc-grp .esc-ib { flex: 1; }
+.esc-controles .esc-val { flex: 0 0 auto; }
+@media (min-width: 640px) { .esc-controles { display: flex; justify-content: center; } .esc-controles > .esc-ib { width: auto; } }
+.esc-pie { flex-shrink: 0; display: flex; gap: 10px; padding: 8px 14px max(14px, env(safe-area-inset-bottom)); }
+.esc-nav { flex: 1; min-width: 0; height: 64px; border: 1.5px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--ink); font: inherit; display: flex; align-items: center; gap: 10px; padding: 0 14px; cursor: pointer; text-align: left; }
 .esc-nav small { font-size: 11px; font-weight: 700; opacity: 0.7; }
 .esc-nav b { font-size: 15px; font-weight: 800; }
-.esc-nav.next { background: var(--escena-chord); color: var(--escena-bg); justify-content: flex-end; text-align: right; }
+.esc-nav.next { background: var(--primary); border-color: var(--primary); color: var(--on-primary); justify-content: flex-end; text-align: right; }
 .esc-nav:disabled { opacity: 0.35; cursor: default; }
+.esc-puntos { display: flex; justify-content: center; gap: 6px; padding: 2px 0 0; }
+.esc-puntos i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.esc-puntos i.on { background: var(--primary); width: 18px; border-radius: 4px; }
+
+/* Hojas dentro del escenario (por encima de la pantalla completa) */
+.esc-fondo { position: fixed; inset: 0; z-index: 40; background: color-mix(in srgb, var(--ink) 35%, transparent); animation: fade 0.25s ease both; }
+.esc-hoja { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-width: 560px; margin-inline: auto; max-height: 86dvh; display: flex; flex-direction: column; gap: 12px; background: var(--bg); color: var(--ink); border-radius: 28px 28px 0 0; padding: 14px 18px max(22px, env(safe-area-inset-bottom)); box-shadow: 0 -20px 40px -24px rgba(0, 0, 0, 0.5); animation: up 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.esc-lista { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; min-height: 0; }
+.esc-fila { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; min-height: 58px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.esc-fila.actual { border-color: var(--primary); background: var(--soft); }
+.esc-ajuste { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 2px; }
+.esc-ajuste > span:first-child { font-size: 15px; font-weight: 800; }
+.esc input[type='range'] { accent-color: var(--primary); }
 
 /* Pantalla del templo: la diapositiva entra suave (sin animación si el sistema lo pide) */
 @keyframes aparecer { from { opacity: 0; } }
 .pantalla-letra { animation: aparecer 0.35s ease both; }
 
 /* Botones dentro de las tarjetas oscuras del modo práctica: un tono más claro que la tarjeta */
-.esc-cuerpo section .esc-ib:not(.on) { background: #2f4136; }
+.esc-cuerpo section .esc-ib:not(.on) { background: var(--soft); }
+
+/* ---------- Sin conexión ---------- */
+.aviso-conexion { position: fixed; top: max(8px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 25; display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--c-ambar-bg); color: var(--c-ambar-fg); font-size: 12px; font-weight: 800; box-shadow: 0 6px 18px -10px var(--ink); white-space: nowrap; }
+.estado-copia { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0 4px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.estado-copia.aviso { padding: 8px 12px; border-radius: 12px; background: var(--c-ambar-bg); color: var(--c-ambar-fg); }
+.estado-copia .enlace { border: 0; background: none; padding: 4px 6px; margin-left: 2px; font: inherit; font-weight: 800; color: var(--primary); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
