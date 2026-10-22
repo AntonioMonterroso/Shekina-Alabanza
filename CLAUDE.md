@@ -54,22 +54,25 @@ Cada pantalla del equipo tiene el prop `verComo` (Líder / Músico / Voz / Sonid
 
 ## Roles y permisos
 
-Roles por grupo: `propietario`, `lider`, `musico`, `voz`, `sonido`, `alumno`. La **congregación** no tiene cuenta: solo ve lo público.
+Roles por grupo: `propietario`, `lider`, `musico`, `voz`, `sonido`, `multimedia` (el equipo de alabanza) y `alumno`, `maestro`, `tutor` (la Escuela). La **congregación** no tiene cuenta: solo ve lo público.
 
 - El **propietario** elige quiénes son líderes. Puede haber varios líderes.
-- **Líder** = admin del grupo.
+- **Líder** = admin del grupo (servicios, cancionero, turnos, ensayos, equipo, lo público).
+- **La Escuela es del propietario.** Un líder NO ve clases, alumnos, fichas, comentarios ni prácticas por serlo: solo si el propietario le da acceso con la marca `miembros.coordina_escuela` (Equipo → integrante → "Acceso a la Escuela"). Esa marca solo la da o quita el propietario. Quien la tiene (líder o no) administra la Escuela; los alumnos, maestros y tutores solo los crean, editan, desactivan o quitan el propietario y quienes tengan esa marca. Ver `docs/ESCUELA.md`.
 
-| Módulo | Líder / Propietario | Músico / Voz | Sonido | Alumno |
-|---|---|---|---|---|
-| Inicio | Todo + alerta de puestos sin cubrir + crear | Su turno, orden, módulos | Su turno, orden | Su próxima clase y su práctica |
-| Servicios | Crear, editar y reordenar, publicar | Solo ver | Solo ver | Sin acceso |
-| Cancionero | CRUD, avanzar fase, pendientes, público sí/no | Ver letra, acordes y guías; "Ya me la sé" | Sin acceso | Sin acceso |
-| Turnos | Todo el grupo + reasignar | Mis turnos (confirmar / no puedo), fechas no disponibles; ve a su equipo sin editar | Igual que músico | Sin acceso |
-| Ensayos | Convocar y definir qué ensayar | Asistencia, repaso, guías, notas | Asistencia, notas | Sin acceso |
-| Modo escenario | Sí | Sí (Voz entra con acordes ocultos) | No | No |
-| Equipo | Invitar, cambiar roles | Solo ver | Solo ver | Sin acceso |
+| Módulo | Líder / Propietario | Músico / Voz | Sonido | Multimedia | Alumno / Maestro / Tutor |
+|---|---|---|---|---|---|
+| Inicio | Todo + alertas + crear | Su turno, orden, módulos | Su turno, orden | Su turno, orden | Lo de la Escuela |
+| Servicios | Crear, editar y reordenar, publicar | Solo ver | Solo ver | Solo ver | Sin acceso |
+| Cancionero | CRUD, fases, público sí/no, audios guía | Ver letra, acordes y guías; "Ya me la sé" | Sin acceso | Sin acceso | Sin acceso |
+| Turnos | Todo el grupo + reasignar | Mis turnos; ve a su equipo sin editar | Igual | Igual | Sin acceso |
+| Ensayos | Convocar y definir qué ensayar | Asistencia, repaso, guías, notas | Asistencia, notas | Sin acceso | Sin acceso |
+| Modo escenario | Sí | Sí (Voz entra con acordes ocultos) | No | No | No |
+| Proyección (pantalla del templo) | Sí | No | No | Sí (la controla) | No |
+| Equipo | Agregar integrantes, roles, contraseñas | Solo ver | Solo ver | Solo ver | Sin acceso |
+| Escuela | **Solo con acceso del propietario** | Si enseña o está inscrito | Igual | Igual | Su clase, su práctica, su avance |
 
-**Los permisos se aplican en la base de datos con RLS**, no solo ocultando botones.
+**Los permisos se aplican en la base de datos con RLS**, no solo ocultando botones. Se prueban sin conexión a Supabase con `npm run test:rls` (corre todas las migraciones en un Postgres local y simula usuarios).
 
 ## Reglas de negocio
 
@@ -85,22 +88,28 @@ Roles por grupo: `propietario`, `lider`, `musico`, `voz`, `sonido`, `alumno`. La
 
 ## Base de datos
 
-El esquema inicial con RLS está en `supabase/schema.sql`. Revísalo, ajústalo y conviértelo en migraciones.
+Las migraciones están en `supabase/migrations/` (en orden, 1 a 14) y **ya están aplicadas** en el proyecto Supabase `AlabanzaAPP`. `supabase/schema.original.sql` es solo el borrador inicial. Cosas que conviene recordar:
+- Las funciones nuevas nacen **cerradas a visitantes anónimos** (migración 13). Solo `votar_cancion`, `quitar_voto` y `enviar_propuesta` son públicas. Si una función nueva debe serlo, hay que darle `grant execute ... to anon` a propósito.
+- `es_coord_escuela()` (migración 14) = propietario o integrante con `coordina_escuela`. `participa_escuela()` decide quién lee cursos, niveles y materiales.
+- Edge Functions (`supabase/functions/`): `admin-crear-usuario`, `admin-cambiar-password`, `enviar-push`. Hay una versión de un solo archivo de cada una en `docs/despliegue/` (se regenera con `node scripts/empaquetar-funciones.mjs`).
 
-## Plan de construcción (en orden)
+## Estado del plan
 
-1. Proyecto Vite + React + TS + Tailwind + PWA. Tokens de diseño y tema Salvia/Rosa.
-2. Supabase: migraciones desde `schema.sql`, Auth, `usePerfil` / `useGrupoActual` / `useRol`.
-3. Login (igual al diseño) + aceptar invitación por enlace.
-4. Inicio + navegación inferior según rol.
-5. Cancionero (CRUD + ChordPro + fases).
-6. Servicios (orden, reordenar, aviso de repetición, publicar).
-7. Turnos (asignar, confirmar, reasignar, indisponibilidad).
-8. Página pública `/p/:slug` + propuestas + bandeja de líderes.
-9. Modo escenario (offline: cachear el servicio del día y sus canciones).
-10. Ensayos + guías de audio en Storage.
-11. Equipo (invitar, roles).
-12. Después: Escuela, Vida del ministerio, notificaciones push (iOS 16.4+ con la PWA instalada).
+Hecho: 1 base y PWA · 2 Supabase y sesión · 3 login con usuario y contraseña (sin registro público) · 4 Inicio y navegación por rol · 5 Cancionero (ChordPro, fases, audios guía) · 6 Servicios · 7 Turnos · 8 página pública `/p/:slug` + propuestas · 9 modo escenario · 10 ensayos · 11 equipo · proyección para la pantalla del templo · avisos al equipo · Escuela (fases 1 a 3) · notificaciones push · modo sin internet · temas de color y modo oscuro.
+
+Pendiente: **Vida del ministerio** · Escuela fase 4 (grabaciones, recordatorios push, afinador) · pruebas con el equipo real (ver `docs/`).
+
+## Sin internet (importante al tocar datos)
+
+Cada músico/voz/líder guarda en su teléfono (IndexedDB, `src/lib/offline/`) el cancionero completo, el próximo servicio y sus tonos propios; y opcionalmente los audios guía. `SyncProvider` lo actualiza al abrir la app con conexión, cuando vuelve el internet, al volver a la app y cada 20 minutos. En iPhone una app web no puede descargar con la pantalla apagada: la descarga ocurre al abrirla con señal.
+- Las pantallas **leen primero la copia** y luego la nube (`useCanciones`, `CancionDetalle`, `Escenario`, `useInicio`, `guiasApi`). Si agregas una pantalla que deba funcionar sin internet, haz lo mismo.
+- Los cambios (fase, pendientes, publicar…) **necesitan internet**; la única excepción es el tono propio del escenario, que se guarda como `pendiente` y se sube solo después.
+- Al cerrar sesión se borra la copia del teléfono.
+- Las tipografías van incluidas en la app (`@fontsource-variable`), no desde Google.
+
+## Despliegue
+
+GitHub Pages: cada push a `main` corre `.github/workflows/desplegar.yml` (pruebas, pruebas de permisos, build con `VITE_BASE=/Shekina-Alabanza/`). URL, anon key y llave pública VAPID van como *variables* del repo. Por la ruta base, todo enlace interno es un `<Link>` del router, nunca `<a href="/...">`. Cada pantalla se carga bajo demanda (`React.lazy`) y queda guardada al instalar, así que también abre sin internet.
 
 ## Convenciones
 
@@ -108,3 +117,5 @@ El esquema inicial con RLS está en `supabase/schema.sql`. Revísalo, ajústalo 
 - Nunca confiar en el rol que manda el cliente: siempre RLS + funciones `security definer`.
 - No subir llaves: usar `.env.local` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
 - Datos de ejemplo de los diseños = solo semillas de desarrollo (`supabase/seed.sql`), nunca en producción.
+- Datos de prueba en la base real: prefijo `ZZ` y se borran al terminar. El propietario usa la app en paralelo y crea datos reales: nunca borrar por conteo.
+- Colores: nunca fijos; siempre variables del tema (`var(--primary)`…) para que funcionen los seis temas y el modo oscuro.
