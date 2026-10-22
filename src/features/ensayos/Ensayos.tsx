@@ -1,3 +1,4 @@
+import { esDeEquipo } from '../../lib/tipos'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../../components/Icon'
@@ -23,7 +24,7 @@ export default function Ensayos() {
   const [hojaCancion, setHojaCancion] = useState<'agregar' | CancionEnsayo | null>(null)
   const [borrador, setBorrador] = useState('')
 
-  const gente = equipo.filter((m) => m.rol !== 'alumno')
+  const gente = equipo.filter((m) => esDeEquipo(m.rol))
   const nombreDe = (id: string) => equipo.find((m) => m.id === id)?.nombre ?? '—'
   const miVa = membresia ? e.asistencia[membresia.id] : undefined
   const confirmaron = gente.filter((m) => e.asistencia[m.id] === true).length

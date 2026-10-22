@@ -4,6 +4,12 @@ import type { Rol } from './tipos'
 // La seguridad real vive en RLS; esto solo evita mostrar botones que no sirven.
 const es = (rol: Rol | null, ...roles: Rol[]) => (rol ? roles.includes(rol) : false)
 
+/**
+ * ¿Coordina la Escuela? Solo el propietario, o quien el propietario marcó con `coordina_escuela`.
+ * Ser líder NO basta: el propietario decide a quién le da acceso. (La base de datos aplica la misma regla.)
+ */
+export const coordinaLaEscuela = (rol: Rol | null, marca: boolean | null | undefined) => rol === 'propietario' || Boolean(marca)
+
 export const permisos = (rol: Rol | null) => {
   // Equipo de alabanza: lo demás (alumno, maestro externo, tutor) solo ve la Escuela
   const eq = es(rol, 'propietario', 'lider', 'musico', 'voz', 'sonido', 'multimedia')

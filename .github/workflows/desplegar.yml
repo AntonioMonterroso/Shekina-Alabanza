@@ -29,6 +29,9 @@ jobs:
 
       - run: npm test
 
+      # Permisos de la base de datos (RLS): corre todas las migraciones en un Postgres local y prueba quién ve y quién cambia qué
+      - run: npm run test:rls
+
       - name: Compilar
         run: npm run build
         env:

@@ -49,3 +49,10 @@ export const ROL_LABEL: Record<Rol, string> = {
   maestro: 'Maestro',
   tutor: 'Tutor',
 }
+
+/** Roles de la Escuela: quienes los administran son el propietario y quien él marque (no todo líder). */
+export const ROLES_ESCUELA: Rol[] = ['alumno', 'maestro', 'tutor']
+/** El equipo de alabanza (todo lo demás pertenece a la Escuela) */
+export const ROLES_EQUIPO: Rol[] = ['propietario', 'lider', 'musico', 'voz', 'sonido', 'multimedia']
+export const esDeEquipo = (r: Rol) => ROLES_EQUIPO.includes(r)
+export const esRolEscuela = (r: Rol) => ROLES_ESCUELA.includes(r)

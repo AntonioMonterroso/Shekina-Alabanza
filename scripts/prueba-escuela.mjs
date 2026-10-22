@@ -165,9 +165,16 @@ export default async function (db, como) {
   assert.equal(await n(U.a1, "select 1 from escuela_cursos where descripcion = 'Para principiantes'"), 1)
 
   // Sin sesión no hay nada
+  // Sin sesión no se ve nada: o la lista sale vacía, o la base ni siquiera deja evaluar la política
+  // (desde la migración 13 un visitante anónimo no puede ejecutar las funciones internas).
   await db.exec(`set role anon`)
-  assert.equal((await db.query('select 1 from escuela_clases')).rows.length, 0, 'sin sesión no se ve nada')
-  await db.exec('reset role')
+  try {
+    assert.equal((await db.query('select 1 from escuela_clases')).rows.length, 0, 'sin sesión no se ve nada')
+  } catch (e) {
+    assert.match(String(e.message), /permission denied/, 'sin sesión no se ve nada')
+  } finally {
+    await db.exec('reset role')
+  }
 
   console.log('Escuela: permisos correctos ')
 }

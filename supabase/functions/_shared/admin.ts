@@ -30,5 +30,15 @@ export async function quienLlama(req: Request, admin: SupabaseClient) {
 export const ROLES_ASIGNABLES = ['lider', 'musico', 'voz', 'sonido', 'multimedia', 'alumno', 'maestro', 'tutor'] as const
 export type RolAsignable = (typeof ROLES_ASIGNABLES)[number]
 
+/** Roles de la Escuela: solo los administra quien coordina la Escuela (el propietario o quien él marque). */
+export const ROLES_ESCUELA = ['alumno', 'maestro', 'tutor']
+
+/** ¿Este usuario coordina la Escuela del grupo? (propietario, o integrante con la marca `coordina_escuela`) */
+export async function coordinaEscuela(admin: SupabaseClient, grupoId: string, userId: string): Promise<boolean> {
+  const { data } = await admin.from('miembros').select('rol, coordina_escuela')
+    .eq('grupo_id', grupoId).eq('user_id', userId).eq('activo', true).maybeSingle()
+  return Boolean(data && (data.rol === 'propietario' || data.coordina_escuela))
+}
+
 export const usuarioValido = (u: unknown): u is string => typeof u === 'string' && /^[a-z0-9._-]{3,30}$/.test(u)
 export const passwordValida = (p: unknown): p is string => typeof p === 'string' && p.length >= 8 && p.length <= 72

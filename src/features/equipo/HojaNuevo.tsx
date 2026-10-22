@@ -1,23 +1,29 @@
 import { useState, type FormEvent } from 'react'
 import Hoja from '../../components/Hoja'
-import { ROL_LABEL } from '../../lib/tipos'
+import { ROL_LABEL, esRolEscuela } from '../../lib/tipos'
 import { passwordTemporal, sugerirUsuario, type RolAsignable } from './useEquipoAdmin'
 
 export const ROLES: RolAsignable[] = ['musico', 'voz', 'sonido', 'multimedia', 'alumno', 'maestro', 'tutor', 'lider']
 
+/** Qué roles puede asignar quien abre la hoja. Los de la Escuela solo los asigna quien coordina la Escuela. */
+export function rolesQuePuedeAsignar(o: { esLider: boolean; coordinaEscuela: boolean; soyPropietario: boolean }): RolAsignable[] {
+  return ROLES.filter((r) => (esRolEscuela(r) ? o.coordinaEscuela : o.esLider && (r !== 'lider' || o.soyPropietario)))
+}
+
 interface Props {
   abierta: boolean
   onCerrar: () => void
-  puedeNombrarLideres: boolean
+  /** roles que quien abre la hoja puede asignar */
+  roles: RolAsignable[]
   onCrear: (d: { usuario: string; nombre: string; password: string; rol: RolAsignable; descripcion: string }) => Promise<string | null>
 }
 
-function Formulario({ puedeNombrarLideres, onCrear, onCerrar }: Omit<Props, 'abierta'>) {
+function Formulario({ roles, onCrear, onCerrar }: Omit<Props, 'abierta'>) {
   const [nombre, setNombre] = useState('')
   const [usuario, setUsuario] = useState('')
   const [editoUsuario, setEditoUsuario] = useState(false)
   const [password, setPassword] = useState(passwordTemporal)
-  const [rol, setRol] = useState<RolAsignable>('musico')
+  const [rol, setRol] = useState<RolAsignable>(roles[0] ?? 'musico')
   const [descripcion, setDescripcion] = useState('')
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
@@ -63,7 +69,7 @@ function Formulario({ puedeNombrarLideres, onCrear, onCerrar }: Omit<Props, 'abi
       <div className="field"><input id="n-pass" type="text" placeholder=" " autoCapitalize="none" value={password} maxLength={72} onChange={(e) => { setPassword(e.target.value); setError('') }} /><label htmlFor="n-pass">Contraseña temporal (mín. 8)</label></div>
       <label className="campo-sel"><span>Rol</span>
         <select value={rol} onChange={(e) => setRol(e.target.value as RolAsignable)}>
-          {ROLES.filter((r) => r !== 'lider' || puedeNombrarLideres).map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
+          {roles.map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
         </select>
       </label>
       <div className="field"><input id="n-desc" type="text" placeholder=" " value={descripcion} maxLength={80} onChange={(e) => setDescripcion(e.target.value)} /><label htmlFor="n-desc">Descripción (ej. Piano y teclados)</label></div>

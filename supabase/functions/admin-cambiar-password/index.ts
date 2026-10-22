@@ -2,7 +2,8 @@
 //  · líder: puede con músico, voz, sonido, multimedia y alumno
 //  · propietario: además con líderes
 //  · nadie toca la del propietario (la cambia él mismo desde su perfil)
-import { adminClient, json, passwordValida, preflight, quienLlama } from '../_shared/admin.ts'
+//  · alumno, maestro y tutor (la Escuela): solo quien coordina la Escuela (el propietario o quien él marque)
+import { adminClient, coordinaEscuela, json, passwordValida, preflight, quienLlama, ROLES_ESCUELA } from '../_shared/admin.ts'
 
 Deno.serve(async (req) => {
   const pre = preflight(req)
@@ -22,7 +23,12 @@ Deno.serve(async (req) => {
 
   const { data: mio } = await admin.from('miembros').select('rol')
     .eq('grupo_id', objetivo.grupo_id).eq('user_id', yo.id).eq('activo', true).maybeSingle()
-  if (!mio || !['propietario', 'lider'].includes(mio.rol)) return json({ error: 'No tienes permiso' }, 403)
+  if (!mio) return json({ error: 'No tienes permiso' }, 403)
+  if (ROLES_ESCUELA.includes(objetivo.rol)) {
+    if (!(await coordinaEscuela(admin, objetivo.grupo_id, yo.id))) return json({ error: 'Solo quien coordina la Escuela cambia esta contraseña' }, 403)
+  } else if (!['propietario', 'lider'].includes(mio.rol)) {
+    return json({ error: 'No tienes permiso' }, 403)
+  }
 
   if (objetivo.rol === 'propietario') return json({ error: 'La contraseña del propietario la cambia él mismo' }, 403)
   if (objetivo.rol === 'lider' && mio.rol !== 'propietario') return json({ error: 'Solo el propietario cambia la contraseña de un líder' }, 403)

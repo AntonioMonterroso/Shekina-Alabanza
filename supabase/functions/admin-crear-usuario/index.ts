@@ -1,7 +1,8 @@
 // Crea un usuario y lo agrega a un grupo. Solo líder/propietario del grupo.
 // Un líder únicamente crea roles que no sean líder; el propietario puede crear líderes.
+// Alumnos, maestros y tutores (la Escuela) solo los crea quien coordina la Escuela: el propietario o quien él marque.
 import {
-  adminClient, correoDeUsuario, json, passwordValida, preflight, quienLlama, ROLES_ASIGNABLES, usuarioValido,
+  adminClient, coordinaEscuela, correoDeUsuario, json, passwordValida, preflight, quienLlama, ROLES_ASIGNABLES, ROLES_ESCUELA, usuarioValido,
 } from '../_shared/admin.ts'
 
 Deno.serve(async (req) => {
@@ -27,7 +28,12 @@ Deno.serve(async (req) => {
 
   const { data: mio } = await admin.from('miembros').select('rol')
     .eq('grupo_id', grupo_id).eq('user_id', yo.id).eq('activo', true).maybeSingle()
-  if (!mio || !['propietario', 'lider'].includes(mio.rol)) return json({ error: 'No tienes permiso en este grupo' }, 403)
+  if (!mio) return json({ error: 'No tienes permiso en este grupo' }, 403)
+  if (ROLES_ESCUELA.includes(rol)) {
+    if (!(await coordinaEscuela(admin, grupo_id, yo.id))) return json({ error: 'Solo quien coordina la Escuela agrega alumnos, maestros o tutores' }, 403)
+  } else if (!['propietario', 'lider'].includes(mio.rol)) {
+    return json({ error: 'No tienes permiso en este grupo' }, 403)
+  }
   if (rol === 'lider' && mio.rol !== 'propietario') return json({ error: 'Solo el propietario nombra líderes' }, 403)
 
   const { data: existe } = await admin.from('perfiles').select('id').eq('usuario', usuario).maybeSingle()

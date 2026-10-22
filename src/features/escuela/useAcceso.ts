@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../hooks/authContext'
-import { permisos } from '../../lib/permisos'
+import { coordinaLaEscuela, permisos } from '../../lib/permisos'
 import { supabase } from '../../lib/supabase'
 
 /** Qué parte de la Escuela le toca a cada quien. */
@@ -21,7 +21,8 @@ export function useAccesoEscuela() {
       .then(({ count }) => setInscrito((count ?? 0) > 0))
   }, [miId])
 
-  const coordina = p.esLider || Boolean(membresia?.coordina_escuela)
+  // La Escuela es del propietario: un líder solo la coordina si el propietario le dio acceso (marca coordina_escuela)
+  const coordina = coordinaLaEscuela(rol, membresia?.coordina_escuela)
   const estudia = rol === 'alumno' || inscrito
   const esTutor = rol === 'tutor'
   return { coordina, ensena: ensena || rol === 'maestro', estudia, esTutor, verEscuela: p.esExterno || coordina || ensena || inscrito }

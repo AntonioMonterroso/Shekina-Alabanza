@@ -4,9 +4,9 @@
 //   no_puede             → el propio integrante del turno (avisa a los líderes)
 //   practica             → quien gestiona la clase (maestro o coordinación); avisa a los alumnos y sus tutores
 //   comentario, nivel    → su autor; avisa al alumno y sus tutores
-//   recomendado          → quien le enseña o coordina; avisa a los líderes
+//   recomendado          → quien le enseña o coordina; avisa a quienes coordinan la Escuela (propietario o marcados por él)
 import webpush from 'npm:web-push@3.6.7'
-import { adminClient, json, preflight, quienLlama } from '../_shared/admin.ts'
+import { adminClient, coordinaEscuela, json, preflight, quienLlama } from '../_shared/admin.ts'
 import { armarMensaje, type DatosPush, type TipoPush } from '../_shared/push.ts'
 
 const EQUIPO = ['propietario', 'lider', 'musico', 'voz', 'sonido', 'multimedia']
@@ -33,6 +33,11 @@ Deno.serve(async (req) => {
     const { data } = await admin.from('miembros').select('rol').eq('grupo_id', grupoId).eq('user_id', yo!.id).eq('activo', true).maybeSingle()
     return (data?.rol as string | undefined) ?? null
   }
+  /** Quienes coordinan la Escuela del grupo: el propietario y los integrantes que él marcó. */
+  async function coordinadoresDe(grupoId: string): Promise<string[]> {
+    const { data } = await admin.from('miembros').select('user_id, rol, coordina_escuela').eq('grupo_id', grupoId).eq('activo', true)
+    return (data ?? []).filter((m) => m.rol === 'propietario' || m.coordina_escuela).map((m) => m.user_id as string)
+  }
   async function usuariosDe(grupoId: string, roles: string[]): Promise<string[]> {
     const { data } = await admin.from('miembros').select('user_id').eq('grupo_id', grupoId).eq('activo', true).in('rol', roles)
     return (data ?? []).map((m) => m.user_id as string)
@@ -56,7 +61,7 @@ Deno.serve(async (req) => {
     if (!c) return null
     const { data: mio } = await admin.from('miembros').select('id, rol, coordina_escuela').eq('grupo_id', c.grupo_id).eq('user_id', yo!.id).eq('activo', true).maybeSingle()
     if (!mio) return null
-    const coordina = LIDERES.includes(mio.rol as string) || Boolean(mio.coordina_escuela)
+    const coordina = mio.rol === 'propietario' || Boolean(mio.coordina_escuela)
     return coordina || c.maestro_id === mio.id ? { grupo: c.grupo_id as string, nombre: c.nombre as string } : null
   }
   async function nombreDe(miembroId: string): Promise<string | undefined> {
@@ -115,10 +120,10 @@ Deno.serve(async (req) => {
     const { data: al } = await admin.from('miembros').select('grupo_id').eq('id', id).maybeSingle()
     if (!al) return json({ error: 'No encontrado' }, 404)
     const { data: ins } = await admin.from('escuela_inscripciones').select('clase_id').eq('alumno_id', id).eq('activo', true)
-    let permitido = LIDERES.includes((await rolEn(al.grupo_id as string)) ?? '')
+    let permitido = await coordinaEscuela(admin, al.grupo_id as string, yo.id)
     for (const i of ins ?? []) if (!permitido && await gestionaClase(i.clase_id as string)) permitido = true
     if (!permitido) return json({ error: 'Sin permiso' }, 403)
-    destinos = await usuariosDe(al.grupo_id as string, LIDERES)
+    destinos = await coordinadoresDe(al.grupo_id as string)
     datos = { alumno: await nombreDe(id) }
   } else {
     const { data: t } = await admin.from('turnos')

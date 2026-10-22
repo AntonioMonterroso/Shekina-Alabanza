@@ -1,3 +1,4 @@
+import { esDeEquipo } from '../../lib/tipos'
 import { useMemo } from 'react'
 import Hoja from '../../components/Hoja'
 import type { Integrante } from '../../hooks/useEquipo'
@@ -28,7 +29,7 @@ function Contenido({ ctx, equipo, indis, turnosServicio, puestos, onCerrar, onAs
   const candidatos = useMemo(() => {
     const ocupado = new Map(turnosServicio.filter((t) => t.miembro_id && t.id !== turno.id).map((t) => [t.miembro_id!, puestos.find((p) => p.id === t.puesto_id)?.nombre ?? 'otro puesto']))
     return equipo
-      .filter((m) => m.rol !== 'alumno')
+      .filter((m) => esDeEquipo(m.rol))
       .map((m) => {
         const actual = m.id === turno.miembro_id
         const bloqueado = indis.some((i) => i.miembro_id === m.id && i.fecha === dia)

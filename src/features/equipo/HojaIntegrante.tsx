@@ -2,12 +2,15 @@ import { useState } from 'react'
 import Hoja from '../../components/Hoja'
 import { ROL_LABEL } from '../../lib/tipos'
 import { ROLES } from './HojaNuevo'
+import { esRolEscuela } from '../../lib/tipos'
 import { passwordTemporal, type Integrante, type RolAsignable } from './useEquipoAdmin'
 
 interface Props {
   integrante: Integrante | null
   puestosDisponibles: string[]
   soyPropietario: boolean
+  /** ¿quien abre la hoja coordina la Escuela? (solo entonces puede mover a alguien a un rol de la Escuela) */
+  coordinaEscuela: boolean
   esYo: boolean
   onCerrar: () => void
   onGuardar: (id: string, c: { rol?: RolAsignable; descripcion?: string | null; puestos?: string[]; coordina_escuela?: boolean }) => Promise<string | null>
@@ -15,7 +18,7 @@ interface Props {
   onPassword: (id: string, password: string) => Promise<string | null>
 }
 
-function Contenido({ m, puestosDisponibles, soyPropietario, esYo, onCerrar, onGuardar, onQuitar, onPassword }: Omit<Props, 'integrante'> & { m: Integrante }) {
+function Contenido({ m, puestosDisponibles, soyPropietario, coordinaEscuela, esYo, onCerrar, onGuardar, onQuitar, onPassword }: Omit<Props, 'integrante'> & { m: Integrante }) {
   const esProp = m.rol === 'propietario'
   // El propietario no cambia de rol ni de contraseña desde aquí; un líder solo lo toca el propietario
   const intocable = esProp || (m.rol === 'lider' && !soyPropietario)
@@ -23,8 +26,8 @@ function Contenido({ m, puestosDisponibles, soyPropietario, esYo, onCerrar, onGu
   const [descripcion, setDescripcion] = useState(m.descripcion ?? '')
   const [puestos, setPuestos] = useState(new Set(m.puestos))
   const [coordina, setCoordina] = useState(m.coordinaEscuela)
-  // Un líder ya coordina la Escuela por serlo
-  const puedeCoordinar = !['propietario', 'lider', 'alumno', 'tutor'].includes(m.rol)
+  // El acceso a la Escuela lo da solo el propietario, a cualquiera menos a alumnos y tutores (ser líder no basta)
+  const puedeCoordinar = soyPropietario && !['propietario', 'alumno', 'tutor'].includes(m.rol)
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [modo, setModo] = useState<'editar' | 'password' | 'quitar'>('editar')
@@ -98,15 +101,15 @@ function Contenido({ m, puestosDisponibles, soyPropietario, esYo, onCerrar, onGu
       ) : (
         <label className="campo-sel"><span>Rol</span>
           <select value={rol} onChange={(e) => setRol(e.target.value as typeof rol)}>
-            {ROLES.filter((r) => r !== 'lider' || soyPropietario || m.rol === 'lider').map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
+            {ROLES.filter((r) => (r !== 'lider' || soyPropietario || m.rol === 'lider') && (!esRolEscuela(r) || coordinaEscuela || r === m.rol)).map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
           </select>
         </label>
       )}
       <div className="field"><input id="i-desc" type="text" placeholder=" " value={descripcion} maxLength={80} onChange={(e) => setDescripcion(e.target.value)} /><label htmlFor="i-desc">Descripción</label></div>
       {puedeCoordinar && (
         <div className="flex items-center gap-3 px-1">
-          <button type="button" role="switch" aria-checked={coordina} aria-label="Coordina la Escuela" className={'sw' + (coordina ? ' on' : '')} onClick={() => setCoordina(!coordina)} />
-          <span className="flex flex-col"><span className="text-[15px] font-extrabold">Coordina la Escuela</span><span className="text-[13px]" style={{ color: 'var(--muted)' }}>Arma clases e inscribe alumnos</span></span>
+          <button type="button" role="switch" aria-checked={coordina} aria-label="Acceso a la Escuela" className={'sw' + (coordina ? ' on' : '')} onClick={() => setCoordina(!coordina)} />
+          <span className="flex flex-col"><span className="text-[15px] font-extrabold">Acceso a la Escuela</span><span className="text-[13px]" style={{ color: 'var(--muted)' }}>Ve y administra clases, alumnos y cursos. Solo tú puedes dárselo.</span></span>
         </div>
       )}
       {puestosDisponibles.length > 0 && (

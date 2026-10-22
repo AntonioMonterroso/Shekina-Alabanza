@@ -36,12 +36,23 @@ export async function quienLlama(req: Request, admin: SupabaseClient) {
 export const ROLES_ASIGNABLES = ['lider', 'musico', 'voz', 'sonido', 'multimedia', 'alumno', 'maestro', 'tutor'] as const
 export type RolAsignable = (typeof ROLES_ASIGNABLES)[number]
 
+/** Roles de la Escuela: solo los administra quien coordina la Escuela (el propietario o quien él marque). */
+export const ROLES_ESCUELA = ['alumno', 'maestro', 'tutor']
+
+/** ¿Este usuario coordina la Escuela del grupo? (propietario, o integrante con la marca `coordina_escuela`) */
+export async function coordinaEscuela(admin: SupabaseClient, grupoId: string, userId: string): Promise<boolean> {
+  const { data } = await admin.from('miembros').select('rol, coordina_escuela')
+    .eq('grupo_id', grupoId).eq('user_id', userId).eq('activo', true).maybeSingle()
+  return Boolean(data && (data.rol === 'propietario' || data.coordina_escuela))
+}
+
 export const usuarioValido = (u: unknown): u is string => typeof u === 'string' && /^[a-z0-9._-]{3,30}$/.test(u)
 export const passwordValida = (p: unknown): p is string => typeof p === 'string' && p.length >= 8 && p.length <= 72
 
 // ---- supabase/functions/admin-crear-usuario/index.ts ----
 // Crea un usuario y lo agrega a un grupo. Solo líder/propietario del grupo.
 // Un líder únicamente crea roles que no sean líder; el propietario puede crear líderes.
+// Alumnos, maestros y tutores (la Escuela) solo los crea quien coordina la Escuela: el propietario o quien él marque.
 Deno.serve(async (req) => {
   const pre = preflight(req)
   if (pre) return pre
@@ -65,7 +76,12 @@ Deno.serve(async (req) => {
 
   const { data: mio } = await admin.from('miembros').select('rol')
     .eq('grupo_id', grupo_id).eq('user_id', yo.id).eq('activo', true).maybeSingle()
-  if (!mio || !['propietario', 'lider'].includes(mio.rol)) return json({ error: 'No tienes permiso en este grupo' }, 403)
+  if (!mio) return json({ error: 'No tienes permiso en este grupo' }, 403)
+  if (ROLES_ESCUELA.includes(rol)) {
+    if (!(await coordinaEscuela(admin, grupo_id, yo.id))) return json({ error: 'Solo quien coordina la Escuela agrega alumnos, maestros o tutores' }, 403)
+  } else if (!['propietario', 'lider'].includes(mio.rol)) {
+    return json({ error: 'No tienes permiso en este grupo' }, 403)
+  }
   if (rol === 'lider' && mio.rol !== 'propietario') return json({ error: 'Solo el propietario nombra líderes' }, 403)
 
   const { data: existe } = await admin.from('perfiles').select('id').eq('usuario', usuario).maybeSingle()

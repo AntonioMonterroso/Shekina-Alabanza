@@ -1,3 +1,4 @@
+import { esDeEquipo } from '../../lib/tipos'
 import { useState, type FormEvent } from 'react'
 import Hoja from '../../components/Hoja'
 import type { Integrante } from '../../hooks/useEquipo'
@@ -48,7 +49,7 @@ function Formulario({ item, equipo, onGuardar, onCerrar }: { item: Item } & Omit
       </div>
       <div className="field"><input id="i-m" type="text" placeholder=" " value={momento} onChange={(e) => setMomento(e.target.value)} maxLength={40} /><label htmlFor="i-m">Momento del culto</label></div>
       <label className="campo-sel"><span>Dirige</span>
-        <select value={dirige} onChange={(e) => setDirige(e.target.value)}><option value="">Sin asignar</option>{equipo.filter((m) => m.rol !== 'alumno').map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}</select>
+        <select value={dirige} onChange={(e) => setDirige(e.target.value)}><option value="">Sin asignar</option>{equipo.filter((m) => esDeEquipo(m.rol)).map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}</select>
       </label>
       <div className="grid grid-cols-2 gap-3">
         {esCancion ? (

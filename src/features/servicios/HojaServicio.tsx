@@ -1,3 +1,4 @@
+import { esDeEquipo } from '../../lib/tipos'
 import { useState, type FormEvent } from 'react'
 import Hoja from '../../components/Hoja'
 import type { Integrante } from '../../hooks/useEquipo'
@@ -74,7 +75,7 @@ function Formulario({ inicial, equipo, onGuardar, onBorrar, onCerrar }: Omit<Pro
       <datalist id="s-tipos">{TIPOS.map((t) => <option key={t} value={t} />)}</datalist>
       <label className="campo-sel"><span>Fecha y hora</span><input type="datetime-local" value={fecha} onChange={(e) => { setFecha(e.target.value); setError('') }} style={{ border: 0, background: 'transparent', color: 'var(--ink)', font: 'inherit', fontSize: 17, outline: 'none', padding: 0 }} /></label>
       <label className="campo-sel"><span>Dirige</span>
-        <select value={dirige} onChange={(e) => setDirige(e.target.value)}><option value="">Sin asignar</option>{equipo.filter((m) => m.rol !== 'alumno').map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}</select>
+        <select value={dirige} onChange={(e) => setDirige(e.target.value)}><option value="">Sin asignar</option>{equipo.filter((m) => esDeEquipo(m.rol)).map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}</select>
       </label>
       <div className="field"><input id="s-llegada" type="text" placeholder=" " value={llegada} onChange={(e) => setLlegada(e.target.value)} maxLength={20} /><label htmlFor="s-llegada">Llegada del equipo (ej. 8:30 a. m.)</label></div>
       <textarea className="letra-editor" style={{ fontFamily: 'inherit', fontSize: 16 }} rows={2} value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Notas para el equipo (opcional)" aria-label="Notas" />
