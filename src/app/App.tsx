@@ -17,6 +17,7 @@ const Avisos = lazy(() => import('../features/avisos/Avisos'))
 const Cancionero = lazy(() => import('../features/cancionero/Cancionero'))
 const CancionDetalle = lazy(() => import('../features/cancionero/CancionDetalle'))
 const CancionForm = lazy(() => import('../features/cancionero/CancionForm'))
+const ImportarCanciones = lazy(() => import('../features/cancionero/ImportarCanciones'))
 const Turnos = lazy(() => import('../features/turnos/Turnos'))
 const Servicios = lazy(() => import('../features/servicios/Servicios'))
 const Propuestas = lazy(() => import('../features/propuestas/Propuestas'))
@@ -75,6 +76,7 @@ export default function App() {
               <Route path=":id" element={<CancionDetalle />} />
               <Route element={<Requiere permiso="esLider" titulo="Solo los líderes editan canciones" />}>
                 <Route path="nueva" element={<CancionForm />} />
+                <Route path="importar" element={<ImportarCanciones />} />
                 <Route path=":id/editar" element={<CancionForm />} />
               </Route>
             </Route>

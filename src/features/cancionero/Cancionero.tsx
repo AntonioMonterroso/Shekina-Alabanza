@@ -80,6 +80,7 @@ export default function Cancionero() {
         </header>
 
         <div className="rise mt-2"><EstadoCopia sinConexion={c.sinConexion} /></div>
+        {p.esLider && <Link to="/cancionero/importar" className="more rise mt-3 self-start"><Icon name="descarga" size={16} strokeWidth={2.2} />Cargar varias canciones</Link>}
 
         <div className="rise mt-3 flex flex-col gap-2 rounded-[20px] p-3.5" style={{ animationDelay: '90ms', background: 'var(--surface)', border: '1.5px solid var(--line)' }}>
           <span className="flex justify-between text-[13px] font-extrabold" style={{ color: 'var(--muted)' }}><span>De nueva a lista para servicio</span><span>{listas === 1 ? '1 lista' : `${listas} listas`}</span></span>
@@ -107,7 +108,7 @@ export default function Cancionero() {
           {c.error && <p className="rounded-2xl p-4 text-[15px] font-bold" style={{ background: 'var(--alerta-bg)', color: 'var(--alerta-fg)' }}>No pudimos cargar el cancionero. Revisa tu conexión e intenta de nuevo.</p>}
           {!c.cargando && !c.error && lista.length === 0 && (
             <div className="px-5 py-10 text-center text-[15px] font-bold" style={{ color: 'var(--muted)' }}>
-              {c.canciones.length === 0 ? (p.esLider ? 'Aún no hay canciones. Agrega la primera con el botón +.' : 'Aún no hay canciones en el cancionero.') : 'No hay canciones con ese filtro.'}
+              {c.canciones.length === 0 ? (p.esLider ? 'Aún no hay canciones. Agrega la primera con el botón + o carga varias de una vez.' : 'Aún no hay canciones en el cancionero.') : 'No hay canciones con ese filtro.'}
             </div>
           )}
 
