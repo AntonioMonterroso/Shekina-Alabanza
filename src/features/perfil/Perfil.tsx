@@ -6,6 +6,7 @@ import { activarPush, desactivarPush, estadoPush, type EstadoPush } from '../../
 import { supabase } from '../../lib/supabase'
 import { ROL_LABEL, TEMAS, type Modo } from '../../lib/tipos'
 import TarjetaOffline from './TarjetaOffline'
+import TarjetaProblemas from './TarjetaProblemas'
 
 const MODOS: { id: Modo; nombre: string }[] = [
   { id: 'claro', nombre: 'Claro' },
@@ -105,6 +106,8 @@ export default function Perfil() {
           <button type="submit" className="cta" disabled={guardando || !nueva}>{guardando ? <span className="spinner" aria-label="Guardando" /> : 'Guardar contraseña'}</button>
         </div>
       </form>
+
+      <TarjetaProblemas />
 
       <button type="button" onClick={salir} className="btn-ghost self-start" style={{ color: 'var(--ink)' }}>Cerrar sesión</button>
     </div>

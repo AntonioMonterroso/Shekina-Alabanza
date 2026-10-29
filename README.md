@@ -11,7 +11,7 @@ App web instalable (PWA) para un **ministerio de alabanza**: planificar el culto
 | | |
 |---|---|
 | **Inicio** | Tu turno, el orden del servicio, avisos y accesos según tu rol |
-| **Cancionero** | Letras en ChordPro, transposición, fases (Nueva → Lista), audios guía |
+| **Cancionero** | Letras en ChordPro, transposición, fases (Nueva → Lista), audios guía. **Cargar varias canciones** pegando texto (separa, detecta título/tono, convierte acordes encima de la letra, salta duplicadas) y **Exportar** (ZIP de ChordPro, copia completa JSON, solo letras, página para imprimir) |
 | **Servicios** | Orden del culto, aviso de repetición ("se cantó hace N días"), publicar |
 | **Turnos** | Asignar, confirmar, "no puedo", reemplazos, fechas no disponibles |
 | **Ensayos** | Convocar, asistencia, canciones a ensayar, repaso y notas |
@@ -21,6 +21,7 @@ App web instalable (PWA) para un **ministerio de alabanza**: planificar el culto
 | **Escuela** | Cursos, clases, práctica semanal con temporizador y metrónomo, niveles. Solo del propietario (ver abajo) |
 | **Página pública** | Lo que cantaremos, repertorio con votos y "¿Falta una canción?" |
 | **Notificaciones push** | Avisos, ensayos, turnos y la Escuela |
+| **Problemas** | Lo que falla en los teléfonos queda anotado (sin datos personales) y lo ve solo el propietario; cualquiera puede *Reportar un problema* desde su Perfil |
 
 Seis temas de color (Salvia, Rosa, Cielo, Ámbar, Lavanda, Turquesa), cada uno con modo claro y oscuro.
 
@@ -45,7 +46,7 @@ npm run dev                    # http://localhost:5173
 ```
 
 ### Base de datos
-1. Aplica las migraciones de `supabase/migrations/` en orden (SQL Editor de Supabase, o `supabase db push`).
+1. Aplica las migraciones de `supabase/migrations/` en orden. Con tu token de Supabase: `set -a && . ./.env.supabase && set +a && npm run migrar -- --pendientes` (las aplica en orden, todo-o-nada cada una, y deja el historial registrado; `npm run migrar` solo lista; `-- --ensayo archivo.sql` la prueba y la deshace). También sirve pegarlas en el SQL Editor, pero entonces el historial no se anota.
 2. Corre `supabase/seed.sql` (crea el grupo y los puestos de ejemplo).
 3. En *Authentication → Sign In / Providers* desactiva *Allow new users to sign up*.
 4. Despliega las funciones de `supabase/functions/` (hay una guía sin terminal en [`docs/DESPLEGAR_FUNCIONES.md`](docs/DESPLEGAR_FUNCIONES.md)).

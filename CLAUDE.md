@@ -88,14 +88,17 @@ Roles por grupo: `propietario`, `lider`, `musico`, `voz`, `sonido`, `multimedia`
 
 ## Base de datos
 
-Las migraciones están en `supabase/migrations/` (en orden, 1 a 14) y **ya están aplicadas** en el proyecto Supabase `AlabanzaAPP`. `supabase/schema.original.sql` es solo el borrador inicial. Cosas que conviene recordar:
+Las migraciones están en `supabase/migrations/` (en orden, 1 a 15) y **ya están aplicadas** en el proyecto Supabase `AlabanzaAPP`, con el historial registrado en `supabase_migrations.schema_migrations`. Para aplicar una nueva usa `npm run migrar` (ver README): la prueba con `--ensayo`, la aplica todo-o-nada y la registra; no las pegues a mano en el SQL Editor o el historial queda incompleto. `supabase/schema.original.sql` es solo el borrador inicial. Cosas que conviene recordar:
 - Las funciones nuevas nacen **cerradas a visitantes anónimos** (migración 13). Solo `votar_cancion`, `quitar_voto` y `enviar_propuesta` son públicas. Si una función nueva debe serlo, hay que darle `grant execute ... to anon` a propósito.
+- `errores_app` (migración 15): errores de la app; cualquiera con sesión inserta lo suyo (30 por hora), **solo el propietario** lee, marca y borra. No guarda contenido de canciones ni datos personales (`limpiar()` quita correos y llaves). Para insertar sin `RETURNING`: quien reporta no puede leer lo que insertó.
 - `es_coord_escuela()` (migración 14) = propietario o integrante con `coordina_escuela`. `participa_escuela()` decide quién lee cursos, niveles y materiales.
 - Edge Functions (`supabase/functions/`): `admin-crear-usuario`, `admin-cambiar-password`, `enviar-push`. Hay una versión de un solo archivo de cada una en `docs/despliegue/` (se regenera con `node scripts/empaquetar-funciones.mjs`).
 
 ## Estado del plan
 
 Hecho: 1 base y PWA · 2 Supabase y sesión · 3 login con usuario y contraseña (sin registro público) · 4 Inicio y navegación por rol · 5 Cancionero (ChordPro, fases, audios guía) · 6 Servicios · 7 Turnos · 8 página pública `/p/:slug` + propuestas · 9 modo escenario · 10 ensayos · 11 equipo · proyección para la pantalla del templo · avisos al equipo · Escuela (fases 1 a 3) · notificaciones push · modo sin internet · temas de color y modo oscuro.
+
+Agregado el 2026-10-29: carga de varias canciones pegando texto (`src/lib/importar.ts`, pantalla `/cancionero/importar`), exportar (ZIP ChordPro, JSON completo, texto, imprimir; `src/lib/exportar.ts`), recordatorio de copia de seguridad para el propietario (`src/lib/respaldo.ts`) y registro de errores (`src/lib/errores.ts`, pantalla `/problemas`).
 
 Pendiente: **Vida del ministerio** · Escuela fase 4 (grabaciones, recordatorios push, afinador) · pruebas con el equipo real (ver `docs/`).
 

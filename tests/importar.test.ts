@@ -66,6 +66,7 @@ test('limpia numeración, comillas y ruido (capo, bpm)', () => {
   assert.equal(b.titulo, 'Gloria a Dios')
   assert.equal(b.tono, 'F#', 'Gb se guarda como F#')
   assert.doesNotMatch(b.letra, /capo|bpm/i)
+  assert.equal(b.bpm, 76, 'el tempo escrito se conserva')
 })
 
 test('tonos: equivalencias y rechazo de lo inválido', () => {

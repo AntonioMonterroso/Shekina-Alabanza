@@ -6,6 +6,7 @@ import { useToast } from '../../components/Toast'
 import { useAuth } from '../../hooks/authContext'
 import { diaNum, diaSemana, iniciales, mesCorto, hora, saludo } from '../../lib/fechas'
 import { permisos } from '../../lib/permisos'
+import { hayQueRespaldar } from '../../lib/respaldo'
 import { useAccesoEscuela } from '../escuela/useAcceso'
 import { supabase } from '../../lib/supabase'
 import { ROL_LABEL } from '../../lib/tipos'
@@ -37,6 +38,8 @@ export default function Inicio() {
   const d = useInicio(membresia?.grupo_id, membresia?.id, p.esLider, p.verServicios)
   const [grupos, setGrupos] = useState(false)
   const [propuestasNuevas, setPropuestasNuevas] = useState(0)
+  // Solo al propietario: recordarle (con calma) que descargue una copia del cancionero
+  const [respaldar] = useState(() => hayQueRespaldar())
   const [aviso, setAviso] = useState<{ texto: string; created_at: string } | null>(null)
 
   // Último aviso de los últimos 14 días, para todo el equipo
@@ -137,6 +140,14 @@ export default function Inicio() {
             <span className="eyebrow">{escuela.esTutor ? 'Escuela · tus hijos' : escuela.ensena && !escuela.estudia ? 'Escuela · tus clases' : 'Tu práctica de la semana'}</span>
             <p className="m-0 text-[17px] font-extrabold">{escuela.esTutor ? 'Mira cómo van con su práctica' : escuela.ensena && !escuela.estudia ? 'Pasa lista y deja la tarea de la semana' : 'Toca para ver lo que toca practicar y anotar tu práctica'}</p>
             <span className="flex items-center gap-1 text-sm font-extrabold" style={{ color: 'var(--primary)' }}>Abrir la Escuela<Icon name="derecha" size={16} strokeWidth={2.4} /></span>
+          </Link>
+        )}
+
+        {p.esPropietario && respaldar && (
+          <Link to="/cancionero/exportar" className="rise alerta" style={{ animationDelay: '135ms', background: 'var(--c-ambar-bg)', borderColor: 'transparent', color: 'var(--c-ambar-fg)' }}>
+            <Icon name="descarga" size={18} strokeWidth={2.2} />
+            <span className="grow">Hace tiempo que no descargas una copia del cancionero</span>
+            <Icon name="derecha" size={16} strokeWidth={2.4} />
           </Link>
         )}
 

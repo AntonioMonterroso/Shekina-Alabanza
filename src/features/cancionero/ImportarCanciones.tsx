@@ -84,7 +84,7 @@ export default function ImportarCanciones() {
     if (!grupoId || !session || aGuardar.length === 0) return
     setGuardando(true)
     const r = await crearCanciones(grupoId, session.user.id, aGuardar.map((f) => ({
-      titulo: f.titulo.trim(), autor: f.autor, tono_original: f.tono, bpm: null, minutos: 4, categoria: null, letra_chordpro: f.letra || null, audio_ref_url: null,
+      titulo: f.titulo.trim(), autor: f.autor, tono_original: f.tono, bpm: f.bpm, minutos: 4, categoria: null, letra_chordpro: f.letra || null, audio_ref_url: null,
     })))
     setGuardando(false)
     setResultado({ creadas: r.creadas, saltadas: saltadas.map((f) => f.titulo.trim() || '(sin título)'), error: r.error })

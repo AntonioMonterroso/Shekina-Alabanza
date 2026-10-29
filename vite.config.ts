@@ -8,6 +8,8 @@ const base = process.env.VITE_BASE ?? '/'
 
 export default defineConfig({
   base,
+  // Versión que se anota junto a cada error (el commit que se publicó)
+  define: { __VERSION__: JSON.stringify((process.env.GITHUB_SHA ?? 'dev').slice(0, 7)) },
   plugins: [
     react(),
     tailwindcss(),

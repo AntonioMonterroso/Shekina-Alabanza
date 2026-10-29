@@ -12,6 +12,8 @@ export interface Borrador {
   tono: string | null
   /** el tono se adivinó por el primer acorde (conviene confirmarlo) */
   tonoEstimado: boolean
+  /** pulsos por minuto, si venía escrito ({tempo: 72} o "BPM: 72") */
+  bpm: number | null
   /** letra en ChordPro */
   letra: string
   conAcordes: boolean
@@ -73,7 +75,11 @@ export function tonoDelPrimerAcorde(chordpro: string): string | null {
 
 const RE_TONO = /^(?:tono|tonalidad|key|clave)\s*(?:original|de la canción)?\s*[:=]\s*([A-Ga-g][#b]?(?:m|min|menor)?)\b/i
 const RE_AUTOR = /^(?:autor|autora|artista|artist|compositor|compositora|letra y música|música|por|by)\s*[:=]\s*(.+)$/i
-const RE_RUIDO = /^(?:capo|cejilla|traste|bpm|tempo|compás|compas|duración|duracion)\s*[:=]?\s*\d*\s*(?:bpm)?\s*$/i
+const RE_RUIDO = /^(?:capo|cejilla|traste|compás|compas|duración|duracion)\s*[:=]?\s*\d*\s*$/i
+const RE_BPM = /^(?:bpm|tempo)\s*[:=]\s*(\d{2,3})\s*(?:bpm)?\s*$/i
+
+/** Directivas de ChordPro que sí dan forma a la letra; el resto ({tempo}, {capo}, {year}…) son datos y no van en la letra. */
+const ESTRUCTURA = /^(?:c|comment|ci|comment_italic|cb|comment_box|start_of_\w+|end_of_\w+|so[cvb]|eo[cvb]|chorus|verse)$/
 
 const limpiarTitulo = (t: string) => t.replace(/^[\s*#_~\-–—]+|[\s*#_~\-–—:]+$/g, '').replace(/^\d{1,3}\s*[.)\-–]\s+/, '').replace(/^["“'«]+|["”'»]+$/g, '').trim()
 
@@ -87,11 +93,17 @@ function pareceTitulo(l: string): boolean {
   return true
 }
 
+function bpmValido(v: string | undefined): number | null {
+  const n = Number(v)
+  return Number.isInteger(n) && n >= 20 && n <= 300 ? n : null
+}
+
 /** Convierte un bloque de texto (una canción) en un borrador. */
 export function leerBloque(bloque: string): Borrador {
   let titulo = ''
   let autor: string | null = null
   let tonoDicho: string | null = null
+  let bpm: number | null = null
   const cuerpo: string[] = []
 
   for (const crudo of bloque.split('\n')) {
@@ -102,13 +114,17 @@ export function leerBloque(bloque: string): Borrador {
       if (k === 'title' || k === 't') titulo = v
       else if (['subtitle', 'st', 'artist', 'composer', 'lyricist', 'author'].includes(k)) autor = autor ?? (v || null)
       else if (k === 'key') tonoDicho = v
-      else cuerpo.push(crudo) // {comment: …}, {start_of_chorus}… los entiende el lector de letras
+      else if (k === 'tempo' || k === 'bpm') bpm = bpmValido(v)
+      else if (ESTRUCTURA.test(k)) cuerpo.push(crudo) // {comment: …}, {start_of_chorus}… los entiende el lector de letras
+      // lo demás son datos de la canción: no van en la letra
       continue
     }
     const tono = l.match(RE_TONO)
     if (tono) { tonoDicho = tonoDicho ?? tono[1]!; continue }
     const aut = l.match(RE_AUTOR)
     if (aut && !esLineaDeAcordes(l)) { autor = autor ?? aut[1]!.trim(); continue }
+    const pulso = l.match(RE_BPM)
+    if (pulso) { bpm = bpm ?? bpmValido(pulso[1]!); continue }
     if (RE_RUIDO.test(l)) continue
     cuerpo.push(crudo)
   }
@@ -130,7 +146,7 @@ export function leerBloque(bloque: string): Borrador {
   const conAcordes = quitarAcordes(letra) !== letra
   const dicho = tonoValido(tonoDicho)
   const estimado = !dicho && conAcordes ? tonoDelPrimerAcorde(letra) : null
-  return { titulo: limpiarTitulo(titulo), autor: autor ? autor.slice(0, 120) : null, tono: dicho ?? estimado, tonoEstimado: !dicho && estimado !== null, letra, conAcordes }
+  return { titulo: limpiarTitulo(titulo), autor: autor ? autor.slice(0, 120) : null, tono: dicho ?? estimado, tonoEstimado: !dicho && estimado !== null, bpm, letra, conAcordes }
 }
 
 /** Todo el proceso: texto pegado → borradores (sin las "canciones" sin letra). */

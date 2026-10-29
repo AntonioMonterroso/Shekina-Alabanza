@@ -80,7 +80,12 @@ export default function Cancionero() {
         </header>
 
         <div className="rise mt-2"><EstadoCopia sinConexion={c.sinConexion} /></div>
-        {p.esLider && <Link to="/cancionero/importar" className="more rise mt-3 self-start"><Icon name="descarga" size={16} strokeWidth={2.2} />Cargar varias canciones</Link>}
+        {p.esLider && (
+          <div className="rise mt-3 flex flex-wrap gap-2">
+            <Link to="/cancionero/importar" className="more"><Icon name="mas" size={16} strokeWidth={2.2} />Cargar varias canciones</Link>
+            <Link to="/cancionero/exportar" className="more"><Icon name="descarga" size={16} strokeWidth={2.2} />Exportar</Link>
+          </div>
+        )}
 
         <div className="rise mt-3 flex flex-col gap-2 rounded-[20px] p-3.5" style={{ animationDelay: '90ms', background: 'var(--surface)', border: '1.5px solid var(--line)' }}>
           <span className="flex justify-between text-[13px] font-extrabold" style={{ color: 'var(--muted)' }}><span>De nueva a lista para servicio</span><span>{listas === 1 ? '1 lista' : `${listas} listas`}</span></span>

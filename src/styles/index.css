@@ -570,3 +570,20 @@ code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; background: var(-
 .estado-copia { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0 4px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
 .estado-copia.aviso { padding: 8px 12px; border-radius: 12px; background: var(--c-ambar-bg); color: var(--c-ambar-fg); }
 .estado-copia .enlace { border: 0; background: none; padding: 4px 6px; margin-left: 2px; font: inherit; font-weight: 800; color: var(--primary); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Imprimir el cancionero: hoja limpia, sin menús ni colores ---------- */
+@media print {
+  html, body, #root { height: auto !important; background: #fff !important; }
+  .app-shell { position: static !important; height: auto !important; overflow: visible !important; display: block !important; }
+  .app-scroll { overflow: visible !important; height: auto !important; padding: 0 !important; }
+  .app-scroll > * { max-width: none !important; }
+  .barra, .toast, .aviso-conexion, .blob, .no-imprimir { display: none !important; }
+  .imprimir { padding: 0 !important; color: #000 !important; background: #fff !important; }
+  .imprimir .hoja-impresa { margin: 0 !important; }
+  .imprimir * { color: #000 !important; }
+  .imprimir .acorde { font-weight: 800; }
+  .cancion-impresa { break-inside: avoid-page; margin: 0 0 22px; }
+  .cancion-impresa.por-pagina { break-before: page; margin: 0; }
+  .cancion-impresa.por-pagina:first-child { break-before: auto; }
+  .letra-seccion.coro { border-left-color: #000 !important; }
+}

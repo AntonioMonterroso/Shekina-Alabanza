@@ -15,6 +15,7 @@ export const permisos = (rol: Rol | null) => {
   const eq = es(rol, 'propietario', 'lider', 'musico', 'voz', 'sonido', 'multimedia')
   return {
     esLider: es(rol, 'propietario', 'lider'),
+    esPropietario: rol === 'propietario',
     esAlumno: rol === 'alumno',
     verOrdenDelServicio: eq,
     verServicios: eq,

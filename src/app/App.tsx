@@ -1,8 +1,10 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { lazy, Suspense, useEffect, type ReactNode } from 'react'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import CambiarPassword from '../features/auth/CambiarPassword'
 import Login from '../features/auth/Login'
 import { Requiere } from '../components/AccesoDenegado'
+import LimiteErrores from '../components/LimiteErrores'
+import { fijarContexto } from '../lib/errores'
 import Inicio from '../features/inicio/Inicio'
 import Perfil from '../features/perfil/Perfil'
 import { AuthProvider } from '../hooks/AuthProvider'
@@ -17,6 +19,9 @@ const Avisos = lazy(() => import('../features/avisos/Avisos'))
 const Cancionero = lazy(() => import('../features/cancionero/Cancionero'))
 const CancionDetalle = lazy(() => import('../features/cancionero/CancionDetalle'))
 const CancionForm = lazy(() => import('../features/cancionero/CancionForm'))
+const Problemas = lazy(() => import('../features/problemas/Problemas'))
+const Exportar = lazy(() => import('../features/cancionero/Exportar'))
+const Imprimir = lazy(() => import('../features/cancionero/Imprimir'))
 const ImportarCanciones = lazy(() => import('../features/cancionero/ImportarCanciones'))
 const Turnos = lazy(() => import('../features/turnos/Turnos'))
 const Servicios = lazy(() => import('../features/servicios/Servicios'))
@@ -32,6 +37,19 @@ const Proyeccion = lazy(() => import('../features/proyeccion/Proyeccion'))
 const Publico = lazy(() => import('../features/publico/Publico'))
 
 const Cargando = () => <div className="pantalla grid place-items-center"><span className="spinner" role="status" style={{ borderColor: 'var(--line)', borderTopColor: 'var(--primary)' }} aria-label="Cargando" /></div>
+
+/** Le dice al registro de errores quién es y en qué grupo está. */
+function ContextoErrores() {
+  const { membresia, session } = useAuth()
+  useEffect(() => { fijarContexto(membresia?.grupo_id, session?.user.id) }, [membresia?.grupo_id, session?.user.id])
+  return null
+}
+
+/** Si una pantalla se rompe, solo cae esa pantalla; al cambiar de ruta se vuelve a intentar. */
+function PantallasSeguras({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation()
+  return <LimiteErrores key={pathname}>{children}</LimiteErrores>
+}
 
 function Protegida({ conBarra = true }: { conBarra?: boolean }) {
   const { cargando, session, perfil } = useAuth()
@@ -50,7 +68,9 @@ export default function App() {
         </div>
       )}
       <SyncProvider>
+      <ContextoErrores />
       <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+        <PantallasSeguras>
         <Suspense fallback={<Cargando />}>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -68,6 +88,9 @@ export default function App() {
           <Route element={<Protegida />}>
             <Route index element={<Inicio />} />
             <Route path="perfil" element={<Perfil />} />
+            <Route path="problemas" element={<Requiere permiso="esPropietario" titulo="Solo el propietario ve los problemas" />}>
+              <Route index element={<Problemas />} />
+            </Route>
             <Route path="servicios" element={<Requiere permiso="verServicios" titulo="Servicios no es para tu rol" />}>
               <Route index element={<Servicios />} />
             </Route>
@@ -77,6 +100,8 @@ export default function App() {
               <Route element={<Requiere permiso="esLider" titulo="Solo los líderes editan canciones" />}>
                 <Route path="nueva" element={<CancionForm />} />
                 <Route path="importar" element={<ImportarCanciones />} />
+                <Route path="exportar" element={<Exportar />} />
+                <Route path="imprimir" element={<Imprimir />} />
                 <Route path=":id/editar" element={<CancionForm />} />
               </Route>
             </Route>
@@ -102,6 +127,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Suspense>
+        </PantallasSeguras>
       </BrowserRouter>
       </SyncProvider>
     </AuthProvider>
